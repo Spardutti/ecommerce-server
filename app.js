@@ -14,6 +14,7 @@ const mongoDB = process.env.MONGO_URI;
 const db = mongoose.connection;
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 db.on("error", console.error.bind(console, "MongoDb connection error"));
+require("./auth/google-auth");
 
 const api = require("./routes/api");
 
