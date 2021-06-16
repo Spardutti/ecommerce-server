@@ -14,7 +14,6 @@ passport.use(
       User.findOne({ googleId: profile.id }, (err, user) => {
         if (user) {
           done(null, user);
-          console.log(profile);
         } else {
           new User({
             username: profile.given_name,

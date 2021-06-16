@@ -15,6 +15,7 @@ const db = mongoose.connection;
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 db.on("error", console.error.bind(console, "MongoDb connection error"));
 require("./auth/google-auth");
+require("./auth/jwtAuth");
 
 const api = require("./routes/api");
 
@@ -30,8 +31,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(
   cookieSession({
     maxAge: 5000,
@@ -39,6 +38,9 @@ app.use(
   })
 );
 app.use(cors());
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/", api);
 
