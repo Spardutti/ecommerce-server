@@ -11,14 +11,15 @@ passport.use(
       callbackURL: "http://localhost:5000/user/google/success",
     },
     (acessToken, refreshToken, profile, done) => {
-      User.findOne({ googleId: profile.id }, (err, user) => {
+      User.findOne({ email: profile.email }, (err, user) => {
         if (user) {
           done(null, user);
         } else {
+          let email = profile.email.toLowerCase();
           new User({
             username: profile.given_name,
             googleId: profile.id,
-            email: profile.email,
+            email,
           }).save((err, newUser) => {
             done(null, newUser);
           });

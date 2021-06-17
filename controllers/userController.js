@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const { body, validationResult } = require("express-validator");
+const async = require("async");
+const bcrypt = require("bcryptjs");
 
 require("dotenv").config();
 
@@ -35,3 +38,61 @@ exports.logOut = (req, res, next) => {
   req.logout();
   res.json("logged out");
 };
+
+// CREATE NEW USER
+exports.createUser = [
+  body("email")
+    .isEmail()
+    .normalizeEmail({ gmail_remove_dots: false })
+    .withMessage("Please enter a valid email format"),
+  body("username")
+    .isLength({ min: 4 })
+    .toLowerCase()
+    .withMessage("Username must be at least 4 characters long"),
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+  body("confirm", "password must match")
+    .exists()
+    .custom((value, { req }) => value === req.body.password),
+
+  (req, res, next) => {
+    const validationErrors = validationResult(req);
+    // IF THERE ARE ERRORS
+    if (!validationErrors.isEmpty()) {
+      res.json({ errors: validationErrors.array() });
+    } else {
+      const { username, email, password } = req.body;
+      async.parallel(
+        {
+          email: function (callback) {
+            User.findOne({ email }).exec(callback);
+          },
+          username: (callback) => {
+            User.findOne({ username }).exec(callback);
+          },
+        },
+
+        (err, results) => {
+          if (err) return next(err);
+          if (results.email) {
+            res.json("Email already in use");
+          }
+          if (results.username) {
+            res.json("Username already in use");
+          } else {
+            bcrypt.hash(password, 10, (err, hash) => {
+              if (err) return next(err);
+              const user = new User({
+                email,
+                username,
+                password: hash,
+              });
+              res.json("user created");
+            });
+          }
+        }
+      );
+    }
+  },
+];

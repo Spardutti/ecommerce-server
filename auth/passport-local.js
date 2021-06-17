@@ -7,7 +7,6 @@ passport.use(
   new LocalStrategy((username, password, done) => {
     // Set username to lowercase
     let lowerCaseUsername = username.toLowerCase();
-    // Search existing user
     User.findOne({ username: lowerCaseUsername }, (err, user) => {
       if (err) return next(err);
       if (!user) {

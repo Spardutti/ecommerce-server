@@ -22,4 +22,7 @@ router.get("/user/logout", userController.logOut);
 // GOOGLE LOGGED IN JUST FOR DEVELOPMENT
 router.get("/user/logged", (req, res, next) => res.json("token created"));
 
+// CREATE NEW USER
+router.post("/user/new", userController.createUser);
+
 module.exports = router;
