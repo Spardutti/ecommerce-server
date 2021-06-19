@@ -16,6 +16,7 @@ mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 db.on("error", console.error.bind(console, "MongoDb connection error"));
 require("./auth/google-auth");
 require("./auth/jwtAuth");
+require("./auth/passport-local");
 
 const api = require("./routes/api");
 

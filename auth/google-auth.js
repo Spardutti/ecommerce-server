@@ -15,11 +15,11 @@ passport.use(
         if (user) {
           done(null, user);
         } else {
-          let email = profile.email.toLowerCase();
+          let userName = profile.given_name.toLowerCase();
           new User({
-            username: profile.given_name,
+            username: userName,
             googleId: profile.id,
-            email,
+            email: profile.email,
           }).save((err, newUser) => {
             done(null, newUser);
           });

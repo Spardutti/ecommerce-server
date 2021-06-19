@@ -83,12 +83,14 @@ exports.createUser = [
           } else {
             bcrypt.hash(password, 10, (err, hash) => {
               if (err) return next(err);
-              const user = new User({
+              new User({
                 email,
                 username,
                 password: hash,
+              }).save((err, user) => {
+                if (err) return next(err);
+                res.json(user);
               });
-              res.json("user created");
             });
           }
         }
@@ -96,3 +98,22 @@ exports.createUser = [
     }
   },
 ];
+
+// LOG IN LOCAL USER
+exports.localLogin = (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user) => {
+    if (err) return next(err);
+    if (!user) {
+      res.status(401);
+      res.json("Wrong username or password");
+    } else {
+      req.login(user, { session: false }, (err) => {
+        if (err) return next(err);
+        const token = jwt.sign(user.toJSON(), process.env.JWT_SECRET, {
+          expiresIn: "60m",
+        });
+        res.json(req.user);
+      });
+    }
+  })(req, res, next);
+};

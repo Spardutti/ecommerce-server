@@ -25,4 +25,7 @@ router.get("/user/logged", (req, res, next) => res.json("token created"));
 // CREATE NEW USER
 router.post("/user/new", userController.createUser);
 
+// LOGIN LOCAL USER
+router.post("/user/login", userController.localLogin);
+
 module.exports = router;
