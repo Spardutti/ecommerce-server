@@ -112,7 +112,7 @@ exports.localLogin = (req, res, next) => {
         const token = jwt.sign(user.toJSON(), process.env.JWT_SECRET, {
           expiresIn: "60m",
         });
-        res.json(req.user);
+        res.json(token);
       });
     }
   })(req, res, next);
