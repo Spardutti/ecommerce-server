@@ -2,6 +2,8 @@ let express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const passport = require("passport");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 const jwtProtected = passport.authenticate("jwt", { session: false });
 
@@ -22,5 +24,10 @@ router.post("/user/new", userController.createUser);
 
 // LOGIN LOCAL USER
 router.post("/user/login", userController.localLogin);
+
+/****************************************** ITEMS */
+
+//TEST
+router.post("/img", upload.single("img"), userController.img);
 
 module.exports = router;

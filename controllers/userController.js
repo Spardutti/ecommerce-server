@@ -4,8 +4,18 @@ const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const async = require("async");
 const bcrypt = require("bcryptjs");
-
 require("dotenv").config();
+
+//delete
+const { uploadFile } = require("../s3");
+exports.img = async (req, res, next) => {
+  try {
+    const result = await uploadFile(req.file);
+    res.json(result);
+  } catch (err) {
+    res.json(req.file);
+  }
+};
 
 //GOOGLE LOGIN
 exports.googleLogin = (req, res, next) => {
