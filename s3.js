@@ -21,23 +21,10 @@ function uploadFile(file) {
   const uploadParams = {
     Bucket: bucketName,
     Body: fileStream,
-    Key: file.filename,
+    Key: Date.now() + file.originalname,
   };
 
   return s3.upload(uploadParams).promise();
 }
 
 exports.uploadFile = uploadFile;
-
-//DOWNLOAD FILE FROM S3BUCKET
-
-function getFile(req, res, next) {
-  var params = { Bucket: keys.AWS_BUCKET, Key: req.params.imageId };
-  s3.getObject(params, function (err, data) {
-    if (err) {
-      return res.send({ error: err });
-    }
-    res.send(data.Body);
-  });
-}
-exports.getFileStream = getFile;

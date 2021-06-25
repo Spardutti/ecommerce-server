@@ -5,17 +5,33 @@ const { body, validationResult } = require("express-validator");
 const async = require("async");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
-
-//delete
 const { uploadFile } = require("../s3");
+
+//WORKING !
 exports.img = async (req, res, next) => {
+  let promises = [];
+  for (let i = 0; i < req.files.length; i++) {
+    promises.push(uploadFile(req.files[i]));
+  }
+  Promise.all(promises)
+    .then(() => {
+      res.json("uploaded");
+    })
+    .catch((err) => res.json(err));
+};
+
+/* 
+exports.img = async (req, res, next) => {
+  console.log("here");
   try {
     const result = await uploadFile(req.file);
+    console.log("uplaoded both");
     res.json(result);
   } catch (err) {
     res.json(req.file);
   }
 };
+*/
 
 //GOOGLE LOGIN
 exports.googleLogin = (req, res, next) => {
