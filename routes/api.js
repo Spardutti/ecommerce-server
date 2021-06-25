@@ -6,7 +6,6 @@ const multer = require("multer");
 const uniqid = require("uniqid");
 
 const storage = multer.diskStorage({
-  destination: "uploads/",
   filename: (req, file, cb) => {
     // THE IMAGE DEFAULT NAME
     cb(null, uniqid() + file.originalname);
