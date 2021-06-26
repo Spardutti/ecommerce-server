@@ -28,3 +28,24 @@ function uploadFile(file) {
 }
 
 exports.uploadFile = uploadFile;
+
+const deleteFileFromS3 = async (Key) => {
+  const params = {
+    Bucket: "ecommercemockup",
+    Key: Key, //if any sub folder-> path/of/the/folder.ext
+  };
+  try {
+    await s3.headObject(params).promise();
+    console.log("File Found in S3");
+    try {
+      await s3.deleteObject(params).promise();
+      console.log("file deleted Successfully");
+    } catch (err) {
+      console.log("ERROR in file Deleting : " + JSON.stringify(err));
+    }
+  } catch (err) {
+    console.log("File not Found ERROR : " + err.code);
+  }
+};
+
+exports.deleteFileFromS3 = deleteFileFromS3;

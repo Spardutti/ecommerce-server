@@ -1,6 +1,8 @@
 let express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
+const categoryController = require("../controllers/categoryControllers");
+const productController = require("../controllers/productController");
 const passport = require("passport");
 const multer = require("multer");
 const uniqid = require("uniqid");
@@ -50,9 +52,33 @@ router.post("/user/new", userController.createUser);
 // LOGIN LOCAL USER
 router.post("/user/login", userController.localLogin);
 
-/****************************************** ITEMS */
+/****************************************** CATEGORY */
 
-//TEST
-router.post("/img", upload.array("img", 5), userController.img);
+// NEW CATEGORY
+router.post("/category/new", categoryController.newCategory);
+
+/******************************************* PRODUCTS */
+
+// GET PRODUCT INFO
+router.get("/product/:id", productController.getProduct);
+
+// CREATE NEW PRODUCT
+router.post("/product/new/:id", productController.newProduct);
+
+// UPDATE PRODUCT INFO
+router.put("/product/update/:id", productController.updateProduct);
+
+// ADD PRODUCT IMAGE
+router.put(
+  "/product/image/:id",
+  upload.array("image", 5),
+  productController.productImage
+);
+
+// REMOVE IMAGE FROM PRODUCT
+router.delete(
+  "/product/delete/image/:id",
+  productController.deleteProductImage
+);
 
 module.exports = router;

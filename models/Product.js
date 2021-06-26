@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema({
   name: String,
+  images: [],
+  sizeColor: [],
   category: { type: Schema.Types.ObjectId, ref: "Category" },
 });
 

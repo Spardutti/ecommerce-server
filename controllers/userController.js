@@ -7,19 +7,6 @@ const bcrypt = require("bcryptjs");
 require("dotenv").config();
 const { uploadFile } = require("../s3");
 
-//WORKING !
-exports.img = async (req, res, next) => {
-  let promises = [];
-  for (let i = 0; i < req.files.length; i++) {
-    promises.push(uploadFile(req.files[i]));
-  }
-  Promise.all(promises)
-    .then(() => {
-      res.json("uploaded");
-    })
-    .catch((err) => res.json(err));
-};
-
 /* 
 exports.img = async (req, res, next) => {
   console.log("here");
