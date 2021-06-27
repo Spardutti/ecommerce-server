@@ -34,8 +34,9 @@ exports.newProduct = [
 exports.updateProduct = [
   body("size").notEmpty().withMessage("Please enter a size"),
   body("color").notEmpty().withMessage("Please enter a color"),
+  body("quantity").notEmpty().withMessage("Please add a quantitiy"),
   (req, res, next) => {
-    const { size, color } = req.body;
+    const { size, color, quantity } = req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) res.json(errors.array());
     else {
@@ -44,7 +45,9 @@ exports.updateProduct = [
         if (!product) res.status(400).json("Product not  found");
         else {
           const info = { size, color };
-          product.sizeColor.push(info);
+          for (let i = 0; i < quantity; i++) {
+            product.sizeColor.push(info);
+          }
           product.save((err) => {
             if (err) return next(err);
             res.json(product);

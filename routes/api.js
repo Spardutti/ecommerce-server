@@ -59,11 +59,11 @@ router.post("/category/new", categoryController.newCategory);
 
 /******************************************* PRODUCTS */
 
-// GET PRODUCT INFO
-router.get("/product/:id", productController.getProduct);
-
 // CREATE NEW PRODUCT
 router.post("/product/new/:id", productController.newProduct);
+
+// GET PRODUCT INFO
+router.get("/product/:id", productController.getProduct);
 
 // UPDATE PRODUCT INFO
 router.put("/product/update/:id", productController.updateProduct);
