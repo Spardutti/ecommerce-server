@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
 const { uploadFile, deleteFileFromS3 } = require("../s3");
 
@@ -30,13 +31,14 @@ exports.newProduct = [
   },
 ];
 
-// UPDATE PRODUCT/ ADD SIZE AND COLOR
+// UPDATE PRODUCT/ ADD SIZE AND COLOR & PRICE
 exports.updateProduct = [
   body("size").notEmpty().withMessage("Please enter a size"),
   body("color").notEmpty().withMessage("Please enter a color"),
   body("quantity").notEmpty().withMessage("Please add a quantitiy"),
+  body("price").notEmpty().isNumeric().withMessage("Please add a valid price"),
   (req, res, next) => {
-    const { size, color, quantity } = req.body;
+    const { size, color, quantity, price } = req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) res.json(errors.array());
     else {
@@ -44,7 +46,7 @@ exports.updateProduct = [
         if (err) return next(err);
         if (!product) res.status(400).json("Product not  found");
         else {
-          const info = { size, color };
+          const info = { size, color, price };
           for (let i = 0; i < quantity; i++) {
             product.sizeColor.push(info);
           }
@@ -179,3 +181,30 @@ exports.removeProduct = (req, res, next) => {
     }
   });
 };
+
+// ADD PRODUCT TO CURRENT USER CART
+exports.addToCart = (req, res, next) => {
+  const { id, size, color } = req.body;
+  User.findById(req.params.id, (err, user) => {
+    if (err) return next(err);
+    if (!user) return res.status(400).json("User not found");
+    Product.findById(id, (err, product) => {
+      if (err) return next(err);
+      if (!product) return res.status(400).json("Product not found");
+      let arr = product.sizeColor;
+      if (arr.length === 0) return res.json("Out of stock");
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].size === size && arr[i].color === color) {
+          user.cart.push(arr[i]);
+          break;
+        } else return res.json("Out of stock");
+      }
+      user.save((err) => {
+        if (err) return next(err);
+        res.json(user);
+      });
+    });
+  });
+};
+
+// TODO ADD CHECKOUT AND CHECK IF CART ITEMS EXIST OR CANCEL THE SALE.

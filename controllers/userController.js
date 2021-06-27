@@ -89,10 +89,10 @@ exports.createUser = [
         (err, results) => {
           if (err) return next(err);
           if (results.email) {
-            res.json("Email already in use");
+            return res.json("Email already in use");
           }
           if (results.username) {
-            res.json("Username already in use");
+            return res.json("Username already in use");
           } else {
             bcrypt.hash(password, 10, (err, hash) => {
               if (err) return next(err);

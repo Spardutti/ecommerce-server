@@ -87,4 +87,7 @@ router.put("/product/sell/:id", productController.sellProduct);
 // REMOVE A PRODUCT WITH ALL INFO
 router.delete("/product/:id", productController.removeProduct);
 
+// ADD PRODUCT TO USER CART
+router.put("/product/cart/:id", productController.addToCart);
+
 module.exports = router;
