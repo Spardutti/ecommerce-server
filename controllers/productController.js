@@ -55,6 +55,36 @@ exports.updateProduct = [
   },
 ];
 
+// REMOVE ITEM COLOR AND SIZE / SELl - REMOVE
+exports.sellProduct = [
+  body("size").notEmpty().withMessage("Please enter the size to remove/sell"),
+  body("color").notEmpty().withMessage("Please enter the color to remove/sell"),
+  (req, res, next) => {
+    const { size, color } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) res.json(errors.array());
+    else {
+      Product.findById(req.params.id, (err, product) => {
+        if (err) return next(err);
+        if (!product) return res.status(400).json("Product not found");
+        else {
+          let arr = product.sizeColor;
+          for (let i = 0; i < arr.length; i++) {
+            if (arr[i].color === color && arr[i].size === size) {
+              arr.splice(i, 1);
+              break;
+            } else return res.json("Product out of stock");
+          }
+          product.save((err) => {
+            if (err) return next(err);
+            res.json(product);
+          });
+        }
+      });
+    }
+  },
+];
+
 // ADD IMAGES TO PRODUCT
 exports.productImage = [
   (req, res, next) => {
