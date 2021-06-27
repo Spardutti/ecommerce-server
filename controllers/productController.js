@@ -164,3 +164,18 @@ exports.deleteProductImage = (req, res, next) => {
     }
   });
 };
+
+// DELETE A PRODUCT WITH ALL INFO
+exports.removeProduct = (req, res, next) => {
+  Product.findByIdAndRemove(req.params.id, async (err, product) => {
+    if (err) return next(err);
+    if (!product) return res.status(400).json("Product not found");
+    else {
+      let arr = product.images;
+      for (let i = 0; i < arr.length; i++) {
+        await deleteFileFromS3(arr[i].Key);
+      }
+      res.json("Deleted " + product);
+    }
+  });
+};

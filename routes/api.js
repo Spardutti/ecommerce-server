@@ -84,4 +84,7 @@ router.delete(
 // REMOVE A PRODUCT STOCK / SIZE - COLOR/ SELL
 router.put("/product/sell/:id", productController.sellProduct);
 
+// REMOVE A PRODUCT WITH ALL INFO
+router.delete("/product/:id", productController.removeProduct);
+
 module.exports = router;
