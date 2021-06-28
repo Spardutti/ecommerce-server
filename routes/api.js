@@ -90,4 +90,10 @@ router.delete("/product/:id", productController.removeProduct);
 // ADD PRODUCT TO USER CART
 router.put("/product/cart/:id", productController.addToCart);
 
+// TEST
+router.get("/checkout", productController.checkout);
+
+//TEST
+router.get("/feedback", productController.feedback);
+
 module.exports = router;

@@ -3,6 +3,51 @@ const Category = require("../models/Category");
 const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
 const { uploadFile, deleteFileFromS3 } = require("../s3");
+const mercadopago = require("mercadopago");
+require("dotenv").config();
+
+mercadopago.configure({
+  access_token:
+    "APP_USR-5713106896067816-062820-4039e5c8877d6946b5645719d0f423ae-782636851",
+});
+
+// MERCADO TEST
+exports.checkout = (req, res, next) => {
+  const { item, price, quantity } = req.body;
+  // Create a preference object
+  let preference = {
+    items: [
+      {
+        title: "Cine",
+        unit_price: Number(23),
+        quantity: Number(5),
+      },
+    ],
+    back_urls: {
+      success: "http://localhost:5000/feedback",
+      failure: "http://localhost:5000/feedback",
+      pending: "http://localhost:5000/feedback",
+    },
+    auto_return: "approved",
+  };
+
+  mercadopago.preferences
+    .create(preference)
+    .then(function (response) {
+      res.redirect(response.body.init_point);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+};
+
+exports.feedback = (req, res, next) => {
+  res.json({
+    Payment: req.query.payment_id,
+    Status: req.query.status,
+    MerchantOrder: req.query.merchant_order_id,
+  });
+};
 
 // NEW PRODUCT
 exports.newProduct = [
@@ -35,10 +80,16 @@ exports.newProduct = [
 exports.updateProduct = [
   body("size").notEmpty().withMessage("Please enter a size"),
   body("color").notEmpty().withMessage("Please enter a color"),
-  body("quantity").notEmpty().withMessage("Please add a quantitiy"),
-  body("price").notEmpty().isNumeric().withMessage("Please add a valid price"),
+  body("quantity").isNumeric().notEmpty().withMessage("Please add a quantitiy"),
+  body("price")
+    .isNumeric()
+    .notEmpty()
+    .isNumeric()
+    .withMessage("Please add a valid price"),
   (req, res, next) => {
-    const { size, color, quantity, price } = req.body;
+    const { size, color } = req.body;
+    const quantity = parseInt(req.body.quantity);
+    const price = parseInt(req.body.price);
     const errors = validationResult(req);
     if (!errors.isEmpty()) res.json(errors.array());
     else {
@@ -46,13 +97,24 @@ exports.updateProduct = [
         if (err) return next(err);
         if (!product) res.status(400).json("Product not  found");
         else {
-          const info = { size, color, price };
-          for (let i = 0; i < quantity; i++) {
-            product.sizeColor.push(info);
+          const info = { size, color, price, quantity };
+          const arr = product.sizeColor;
+          // CHECK IF PRODUCT IS EMPTY
+          if (arr.length > 0) {
+            console.log(arr.length);
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].color === color && arr[i].size === size) {
+                arr[i].quantity += quantity;
+                break;
+              }
+            }
+          } else {
+            arr.push(info);
           }
-          product.save((err) => {
+          product.markModified("sizeColor");
+          product.save((err, newProduct) => {
             if (err) return next(err);
-            res.json(product);
+            res.json(newProduct);
           });
         }
       });
@@ -206,5 +268,3 @@ exports.addToCart = (req, res, next) => {
     });
   });
 };
-
-// TODO ADD CHECKOUT AND CHECK IF CART ITEMS EXIST OR CANCEL THE SALE.
