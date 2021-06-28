@@ -101,14 +101,15 @@ exports.updateProduct = [
           const arr = product.sizeColor;
           // CHECK IF PRODUCT IS EMPTY
           if (arr.length > 0) {
-            console.log(arr.length);
             for (let i = 0; i < arr.length; i++) {
+              // UPDATE THE QUANTITIY
               if (arr[i].color === color && arr[i].size === size) {
                 arr[i].quantity += quantity;
                 break;
               }
             }
           } else {
+            // ADD THE INFO
             arr.push(info);
           }
           product.markModified("sizeColor");
@@ -123,6 +124,7 @@ exports.updateProduct = [
 ];
 
 // REMOVE ITEM COLOR AND SIZE / SELl - REMOVE
+// TODO CHECK THE QUANTITIES
 exports.sellProduct = [
   body("size").notEmpty().withMessage("Please enter the size to remove/sell"),
   body("color").notEmpty().withMessage("Please enter the color to remove/sell"),
@@ -246,7 +248,7 @@ exports.removeProduct = (req, res, next) => {
 
 // ADD PRODUCT TO CURRENT USER CART
 exports.addToCart = (req, res, next) => {
-  const { id, size, color } = req.body;
+  const { id, size, color, quantity } = req.body;
   User.findById(req.params.id, (err, user) => {
     if (err) return next(err);
     if (!user) return res.status(400).json("User not found");
@@ -254,12 +256,15 @@ exports.addToCart = (req, res, next) => {
       if (err) return next(err);
       if (!product) return res.status(400).json("Product not found");
       let arr = product.sizeColor;
-      if (arr.length === 0) return res.json("Out of stock");
+      // CHECK IF THE PRODUCT IS AVAILABLE AND ADD THE QUANTITY TO THE USER CART
       for (let i = 0; i < arr.length; i++) {
         if (arr[i].size === size && arr[i].color === color) {
-          user.cart.push(arr[i]);
-          break;
-        } else return res.json("Out of stock");
+          if (arr[i].quantity >= quantity) {
+            arr[i].quantity = quantity;
+            user.cart.push(arr[i]);
+            break;
+          } else return res.status(400).json("Item out of stock");
+        } else return res.status(400).json("Out of stock");
       }
       user.save((err) => {
         if (err) return next(err);
