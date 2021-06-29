@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const categoryController = require("../controllers/categoryControllers");
 const productController = require("../controllers/productController");
+const checkoutController = require("../controllers/checkoutController");
 const passport = require("passport");
 const multer = require("multer");
 const uniqid = require("uniqid");
@@ -91,9 +92,9 @@ router.delete("/product/:id", productController.removeProduct);
 router.put("/product/cart/:id", productController.addToCart);
 
 // TEST
-router.get("/checkout", productController.checkout);
+router.get("/checkout/:id", checkoutController.checkout);
 
 //TEST
-router.get("/feedback", productController.feedback);
+router.get("/feedback", checkoutController.feedback);
 
 module.exports = router;

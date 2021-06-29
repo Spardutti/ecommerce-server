@@ -3,51 +3,7 @@ const Category = require("../models/Category");
 const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
 const { uploadFile, deleteFileFromS3 } = require("../s3");
-const mercadopago = require("mercadopago");
 require("dotenv").config();
-
-mercadopago.configure({
-  access_token:
-    "APP_USR-5713106896067816-062820-4039e5c8877d6946b5645719d0f423ae-782636851",
-});
-
-// MERCADO TEST
-exports.checkout = (req, res, next) => {
-  const { item, price, quantity } = req.body;
-  // Create a preference object
-  let preference = {
-    items: [
-      {
-        title: "Cine",
-        unit_price: Number(23),
-        quantity: Number(5),
-      },
-    ],
-    back_urls: {
-      success: "http://localhost:5000/feedback",
-      failure: "http://localhost:5000/feedback",
-      pending: "http://localhost:5000/feedback",
-    },
-    auto_return: "approved",
-  };
-
-  mercadopago.preferences
-    .create(preference)
-    .then(function (response) {
-      res.redirect(response.body.init_point);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-};
-
-exports.feedback = (req, res, next) => {
-  res.json({
-    Payment: req.query.payment_id,
-    Status: req.query.status,
-    MerchantOrder: req.query.merchant_order_id,
-  });
-};
 
 // NEW PRODUCT
 exports.newProduct = [
@@ -98,6 +54,7 @@ exports.updateProduct = [
         if (!product) res.status(400).json("Product not  found");
         else {
           const info = { size, color, price, quantity };
+          console.log(product);
           const arr = product.sizeColor;
           // CHECK IF PRODUCT IS EMPTY
           if (arr.length > 0) {
@@ -248,7 +205,8 @@ exports.removeProduct = (req, res, next) => {
 
 // ADD PRODUCT TO CURRENT USER CART
 exports.addToCart = (req, res, next) => {
-  const { id, size, color, quantity } = req.body;
+  const { id, size, color } = req.body;
+  const quantity = parseInt(req.body.quantity);
   User.findById(req.params.id, (err, user) => {
     if (err) return next(err);
     if (!user) return res.status(400).json("User not found");
@@ -257,15 +215,35 @@ exports.addToCart = (req, res, next) => {
       if (!product) return res.status(400).json("Product not found");
       let arr = product.sizeColor;
       // CHECK IF THE PRODUCT IS AVAILABLE AND ADD THE QUANTITY TO THE USER CART
-      for (let i = 0; i < arr.length; i++) {
-        if (arr[i].size === size && arr[i].color === color) {
-          if (arr[i].quantity >= quantity) {
-            arr[i].quantity = quantity;
-            user.cart.push(arr[i]);
-            break;
-          } else return res.status(400).json("Item out of stock");
-        } else return res.status(400).json("Out of stock");
-      }
+      arr.forEach((arrItem) => {
+        const productDetails = {
+          name: product.name,
+          size,
+          color,
+          quantity,
+          price: arrItem.price,
+        };
+        if (
+          arrItem.size === size &&
+          arrItem.color === color &&
+          arrItem.quantity >= quantity
+        ) {
+          if (user.cart.length > 0) {
+            user.cart.forEach((elem) => {
+              if (elem.size === size && elem.color === color) {
+                elem.quantity += quantity;
+                return;
+              } else {
+                user.cart.push(productDetails);
+                return;
+              }
+            });
+          } else {
+            user.cart.push(productDetails);
+          }
+        } else return res.status(400).json("Item out of stock");
+      });
+      user.markModified("cart");
       user.save((err) => {
         if (err) return next(err);
         res.json(user);
