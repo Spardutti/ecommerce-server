@@ -97,4 +97,7 @@ router.get("/checkout/:id", checkoutController.checkout);
 //TEST
 router.get("/feedback", checkoutController.feedback);
 
+// TEST
+router.post("/stock/:id", checkoutController.checkCartStock);
+
 module.exports = router;

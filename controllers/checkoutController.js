@@ -8,6 +8,40 @@ mercadopago.configure({
     "APP_USR-5713106896067816-062820-4039e5c8877d6946b5645719d0f423ae-782636851",
 });
 
+// CHECK IF STOCK IF AVAILABLE BEFORE CHECKOUT
+exports.checkCartStock = (req, res, next) => {
+  User.findById(req.params.id, (err, user) => {
+    if (err) return next(err);
+    if (!user) return res.status(400).json("User not found");
+    else {
+      user.cart.forEach((item) => {
+        Product.find({ name: item.name }, (err, products) => {
+          if (err) return next(err);
+          products.forEach((product) => {
+            product.sizeColor.forEach((info) => {
+              if (
+                info.size === item.size &&
+                info.color === item.color &&
+                info.quantity >= item.quantity
+              ) {
+                // UPDATE DB STOCK
+                info.quantity -= item.quantity;
+                product.markModified("sizeColor");
+                product.save((err) => {
+                  if (err) return next(err);
+                  // PROCEED TO CHECKOUT
+                  return res.json(products);
+                });
+              } else
+                res.status(400).json({ item: item.name, msg: "Out of stock" });
+            });
+          });
+        });
+      });
+    }
+  });
+};
+
 // MERCADO TEST
 exports.checkout = (req, res, next) => {
   User.findById(req.params.id, (err, user) => {
