@@ -58,6 +58,9 @@ router.post("/user/login", userController.localLogin);
 // NEW CATEGORY
 router.post("/category/new", categoryController.newCategory);
 
+// REMOVE CATEGORY
+router.delete("/category/:id", categoryController.removeCategory);
+
 /******************************************* PRODUCTS */
 
 // CREATE NEW PRODUCT
@@ -88,13 +91,15 @@ router.delete("/product/:id", productController.removeProduct);
 // ADD PRODUCT TO USER CART
 router.put("/product/cart/:id", productController.addToCart);
 
+/***************************************** CHECKOUT */
+
+// CHECK ITEMS STOCK BEFORE GOING TO CHECKOUT
+router.post("/stock/:id", checkoutController.checkCartStock);
+
 // TEST
 router.get("/checkout/:id", checkoutController.checkout);
 
 //TEST
 router.get("/feedback", checkoutController.feedback);
-
-// TEST
-router.post("/stock/:id", checkoutController.checkCartStock);
 
 module.exports = router;

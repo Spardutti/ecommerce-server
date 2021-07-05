@@ -70,8 +70,8 @@ exports.updateProduct = [
             }
           });
         }
-      } catch (error) {
-        res.status(500).json("Something went wrong");
+      } catch (err) {
+        res.status(500).json(next(err));
       }
     }
   },
