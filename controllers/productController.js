@@ -42,71 +42,37 @@ exports.updateProduct = [
     .notEmpty()
     .isNumeric()
     .withMessage("Please add a valid price"),
-  (req, res, next) => {
+  async (req, res, next) => {
     const { size, color } = req.body;
     const quantity = parseInt(req.body.quantity);
     const price = parseInt(req.body.price);
     const errors = validationResult(req);
     if (!errors.isEmpty()) res.json(errors.array());
     else {
-      Product.findById(req.params.id, (err, product) => {
-        if (err) return next(err);
-        if (!product) res.status(400).json("Product not  found");
-        else {
-          const info = { size, color, price, quantity };
-          console.log(product);
-          const arr = product.sizeColor;
-          // CHECK IF PRODUCT IS EMPTY
-          if (arr.length > 0) {
-            for (let i = 0; i < arr.length; i++) {
-              // UPDATE THE QUANTITIY
-              if (arr[i].color === color && arr[i].size === size) {
-                arr[i].quantity += quantity;
-                break;
-              }
-            }
-          } else {
-            // ADD THE INFO
-            arr.push(info);
-          }
-          product.markModified("sizeColor");
-          product.save((err, newProduct) => {
-            if (err) return next(err);
-            res.json(newProduct);
-          });
-        }
-      });
-    }
-  },
-];
+      try {
+        const product = await Product.findById(req.params.id);
+        const productInfo = { size, color, price, quantity };
 
-// REMOVE ITEM COLOR AND SIZE / SELl - REMOVE
-// TODO CHECK THE QUANTITIES
-exports.sellProduct = [
-  body("size").notEmpty().withMessage("Please enter the size to remove/sell"),
-  body("color").notEmpty().withMessage("Please enter the color to remove/sell"),
-  (req, res, next) => {
-    const { size, color } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) res.json(errors.array());
-    else {
-      Product.findById(req.params.id, (err, product) => {
-        if (err) return next(err);
-        if (!product) return res.status(400).json("Product not found");
+        if (product.sizeColor.length === 0) product.sizeColor.push(productInfo);
         else {
-          let arr = product.sizeColor;
-          for (let i = 0; i < arr.length; i++) {
-            if (arr[i].color === color && arr[i].size === size) {
-              arr.splice(i, 1);
-              break;
-            } else return res.json("Product out of stock");
-          }
-          product.save((err) => {
-            if (err) return next(err);
-            res.json(product);
+          product.sizeColor.forEach(async (productDetail) => {
+            if (productDetail.size === size && productDetail.color === color) {
+              productDetail.quantity = quantity;
+              productDetail.price = price;
+              product.markModified("sizeColor");
+              await product.save();
+              return res.json(product);
+            } else {
+              product.sizeColor.push(productInfo);
+              product.markModified("sizeColor");
+              await product.save();
+              return res.json(product);
+            }
           });
         }
-      });
+      } catch (error) {
+        res.status(500).json("Something went wrong");
+      }
     }
   },
 ];

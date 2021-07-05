@@ -72,7 +72,6 @@ exports.checkout = (req, res, next) => {
         });
     }
   });
-  const { item, price, quantity } = req.body;
 };
 
 exports.feedback = (req, res, next) => {
