@@ -9,37 +9,34 @@ mercadopago.configure({
 });
 
 // CHECK IF STOCK IF AVAILABLE BEFORE CHECKOUT
-exports.checkCartStock = (req, res, next) => {
-  User.findById(req.params.id, (err, user) => {
-    if (err) return next(err);
-    if (!user) return res.status(400).json("User not found");
-    else {
-      user.cart.forEach((item) => {
-        Product.find({ name: item.name }, (err, products) => {
-          if (err) return next(err);
-          products.forEach((product) => {
-            product.sizeColor.forEach((info) => {
-              if (
-                info.size === item.size &&
-                info.color === item.color &&
-                info.quantity >= item.quantity
-              ) {
-                // UPDATE DB STOCK
-                info.quantity -= item.quantity;
-                product.markModified("sizeColor");
-                product.save((err) => {
-                  if (err) return next(err);
-                  // PROCEED TO CHECKOUT
-                  return res.json(products);
-                });
-              } else
-                res.status(400).json({ item: item.name, msg: "Out of stock" });
-            });
-          });
+exports.checkCartStock = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    user.cart.forEach(async (cartItem) => {
+      // FIND ALL THE CART ITEMS IN THE DB
+      const products = await Product.find({ name: cartItem.name });
+      products.forEach((product) => {
+        //CHECK THE SIZE AND COLOR OF THE PRODUCT
+        product.sizeColor.forEach(async (productDetail) => {
+          if (
+            productDetail.size === cartItem.size &&
+            productDetail.color === cartItem.color &&
+            productDetail.quantity >= cartItem.quantity
+          ) {
+            // UPDATE DATABASE
+            productDetail.quantity -= cartItem.quantity;
+            product.markModified("sizeColor");
+            await product.save();
+            res.json(product);
+          }
+          // IF NO PRODUCT OR NO STOCK
+          else res.status(500).json("Product out of stock");
         });
       });
-    }
-  });
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
 };
 
 // MERCADO TEST
