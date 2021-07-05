@@ -56,7 +56,7 @@ exports.checkout = (req, res, next) => {
       };
       user.cart.forEach((item) => {
         preference.items.push({
-          title: "hola",
+          title: item.name,
           unit_price: item.price,
           quantity: item.quantity,
         });
@@ -73,7 +73,6 @@ exports.checkout = (req, res, next) => {
     }
   });
   const { item, price, quantity } = req.body;
-  // Create a preference object
 };
 
 exports.feedback = (req, res, next) => {
