@@ -217,3 +217,17 @@ exports.addToCart = (req, res, next) => {
     });
   });
 };
+
+// DELETE PRODUCT FROM CART
+exports.removeFromCart = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    const { indexToDelete } = req.body;
+    user.cart.splice(indexToDelete, 1);
+    user.markModified("cart");
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    res.status(500).json(next(err));
+  }
+};

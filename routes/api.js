@@ -91,6 +91,9 @@ router.delete("/product/:id", productController.removeProduct);
 // ADD PRODUCT TO USER CART
 router.put("/product/cart/:id", productController.addToCart);
 
+// REMOVE PRODUCT FROM USER CART
+router.delete("/product/cart/:id", productController.removeFromCart);
+
 /***************************************** CHECKOUT */
 
 // CHECK ITEMS STOCK BEFORE GOING TO CHECKOUT
