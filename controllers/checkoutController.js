@@ -12,9 +12,28 @@ mercadopago.configure({
 exports.checkCartStock = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
-    user.cart.forEach(async (itemInCart) => {
-      const product = await Product.find({ name: itemInCart.name });
-    });
+
+    const itemsToCheck = user.cart;
+    for (item of itemsToCheck) {
+      console.log(item.price);
+      const product = await Product.findOne({ name: item.name });
+      let index = product.sizeColor.findIndex(
+        (ele) => ele.size === item.size && ele.color === item.color
+      );
+      if (product.sizeColor[index].quantity < item.quantity) {
+        return res
+          .status(500)
+          .json(
+            "Not enough stock of: " +
+              item.name +
+              ", color: " +
+              item.color +
+              ", size: " +
+              item.size
+          );
+      }
+    }
+    res.redirect("/checkout/" + user.id);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -42,7 +61,7 @@ exports.checkout = (req, res, next) => {
           quantity: item.quantity,
         });
       });
-
+      console.log(preference);
       mercadopago.preferences
         .create(preference)
         .then(function (response) {

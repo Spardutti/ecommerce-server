@@ -51,7 +51,7 @@ exports.updateProduct = [
     else {
       try {
         const product = await Product.findById(req.params.id);
-        const productInfo = { size, color, price, quantity };
+        const productInfo = { size, color, quantity };
 
         let index = product.sizeColor.findIndex(
           (elem) => elem.size === size && elem.color === color
@@ -59,6 +59,7 @@ exports.updateProduct = [
         // if no info, add it
         if (index === -1) {
           product.sizeColor.push(productInfo);
+          product.price = price;
           product.markModified("sizeColor");
           await product.save();
           return res.json(product);
@@ -66,7 +67,7 @@ exports.updateProduct = [
         // else update the info
         else {
           let productToUpdate = product.sizeColor[index];
-          productToUpdate.price = price;
+          product.price = price;
           productToUpdate.quantity += quantity;
           product.markModified("sizeColor");
           await product.save();
@@ -172,6 +173,7 @@ exports.removeProduct = (req, res, next) => {
 };
 
 // ADD PRODUCT TO CURRENT USER CART
+// TODO FIGURE HOW TO ADD THE PRODUCT PRICE TO AVOID FUTURE ERRORS
 exports.addToCart = async (req, res, next) => {
   const { id, size, color } = req.body;
   const quantity = parseInt(req.body.quantity);
