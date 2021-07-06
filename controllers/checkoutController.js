@@ -12,27 +12,8 @@ mercadopago.configure({
 exports.checkCartStock = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
-    user.cart.forEach(async (cartItem) => {
-      // FIND ALL THE CART ITEMS IN THE DB
-      const products = await Product.find({ name: cartItem.name });
-      products.forEach((product) => {
-        //CHECK THE SIZE AND COLOR OF THE PRODUCT
-        product.sizeColor.forEach(async (productDetail) => {
-          if (
-            productDetail.size === cartItem.size &&
-            productDetail.color === cartItem.color &&
-            productDetail.quantity >= cartItem.quantity
-          ) {
-            // UPDATE DATABASE
-            productDetail.quantity -= cartItem.quantity;
-            product.markModified("sizeColor");
-            await product.save();
-            res.json(product);
-          }
-          // IF NO PRODUCT OR NO STOCK
-          else res.status(500).json("Product out of stock");
-        });
-      });
+    user.cart.forEach(async (itemInCart) => {
+      const product = await Product.find({ name: itemInCart.name });
     });
   } catch (error) {
     res.status(500).json(error);

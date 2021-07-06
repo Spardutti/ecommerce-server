@@ -53,22 +53,23 @@ exports.updateProduct = [
         const product = await Product.findById(req.params.id);
         const productInfo = { size, color, price, quantity };
 
-        if (product.sizeColor.length === 0) product.sizeColor.push(productInfo);
+        let index = product.sizeColor.findIndex(
+          (elem) => elem.size === size && elem.color === color
+        );
+        // if no info, add it
+        if (index === -1) {
+          product.sizeColor.push(productInfo);
+          product.markModified("sizeColor");
+          await product.save();
+          return res.json(product);
+        }
+        // else update the info
         else {
-          product.sizeColor.forEach(async (productDetail) => {
-            if (productDetail.size === size && productDetail.color === color) {
-              productDetail.quantity = quantity;
-              productDetail.price = price;
-              product.markModified("sizeColor");
-              await product.save();
-              return res.json(product);
-            } else {
-              product.sizeColor.push(productInfo);
-              product.markModified("sizeColor");
-              await product.save();
-              return res.json(product);
-            }
-          });
+          let productToUpdate = product.sizeColor[index];
+          productToUpdate.price = price;
+          productToUpdate.quantity += quantity;
+          product.markModified("sizeColor");
+          return res.json(productToUpdate);
         }
       } catch (err) {
         res.status(500).json(next(err));
