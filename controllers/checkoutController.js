@@ -79,5 +79,6 @@ exports.feedback = (req, res, next) => {
     Payment: req.query.payment_id,
     Status: req.query.status,
     MerchantOrder: req.query.merchant_order_id,
+    response: req.query,
   });
 };

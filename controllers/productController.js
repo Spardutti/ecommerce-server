@@ -170,52 +170,60 @@ exports.removeProduct = (req, res, next) => {
 };
 
 // ADD PRODUCT TO CURRENT USER CART
-exports.addToCart = (req, res, next) => {
+exports.addToCart = async (req, res, next) => {
   const { id, size, color } = req.body;
   const quantity = parseInt(req.body.quantity);
-  User.findById(req.params.id, (err, user) => {
-    if (err) return next(err);
-    if (!user) return res.status(400).json("User not found");
-    Product.findById(id, (err, product) => {
-      if (err) return next(err);
-      if (!product) return res.status(400).json("Product not found");
-      let arr = product.sizeColor;
-      // CHECK IF THE PRODUCT IS AVAILABLE AND ADD THE QUANTITY TO THE USER CART
-      arr.forEach((arrItem) => {
-        const productDetails = {
-          name: product.name,
-          size,
-          color,
-          quantity,
-          price: arrItem.price,
-        };
-        if (
-          arrItem.size === size &&
-          arrItem.color === color &&
-          arrItem.quantity >= quantity
-        ) {
-          if (user.cart.length > 0) {
-            user.cart.forEach((elem) => {
-              if (elem.size === size && elem.color === color) {
-                elem.quantity += quantity;
-                return;
-              } else {
-                user.cart.push(productDetails);
-                return;
-              }
-            });
-          } else {
-            user.cart.push(productDetails);
-          }
-        } else return res.status(400).json("Item out of stock");
-      });
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) res.status(500).json("User not found");
+    const product = await Product.findById(id);
+    if (!product) res.status(500).json("Product not found");
+    let cartItems = user.cart;
+    let productDetails = product.sizeColor;
+    let productToAdd = { name: product.name, size, color, quantity };
+    // if not enough stock return.
+    for (let detail of productDetails) {
+      if (detail.quantity < quantity) {
+        return res
+          .status(500)
+          .json(
+            "Not enough stock of " +
+              productToAdd.name +
+              ", size: " +
+              size +
+              ", color: " +
+              color
+          );
+      }
+    }
+    if (cartItems.length === 0) {
+      cartItems.push(productToAdd);
       user.markModified("cart");
-      user.save((err) => {
-        if (err) return next(err);
-        res.json(user);
-      });
-    });
-  });
+      await user.save();
+      return res.json(user);
+    }
+    // check if item exist in cart
+    for (item of cartItems) {
+      if (item.size === size && item.color === color) {
+        item.quantity += quantity;
+        user.markModified("cart");
+        await user.save();
+        return res.json(user);
+      }
+    }
+    // check if item does not exist
+    let index = cartItems.findIndex(
+      (elem) => elem.size === size && elem.color === color
+    );
+    if (index === -1) {
+      cartItems.push(productToAdd);
+      user.markModified("cart");
+      await user.save();
+      return res.json(user);
+    }
+  } catch (error) {
+    res.json(next(error));
+  }
 };
 
 // DELETE PRODUCT FROM CART
