@@ -69,6 +69,7 @@ exports.updateProduct = [
           productToUpdate.price = price;
           productToUpdate.quantity += quantity;
           product.markModified("sizeColor");
+          await product.save();
           return res.json(productToUpdate);
         }
       } catch (err) {
@@ -197,12 +198,24 @@ exports.addToCart = async (req, res, next) => {
           );
       }
     }
-    if (cartItems.length === 0) {
+    // check if the product exist
+    let productIndex = productDetails.findIndex(
+      (elem) => elem.size === size && elem.color === color
+    );
+    if (productIndex === -1) return res.status(500).json("Item out of stock");
+
+    let index = cartItems.findIndex(
+      (elem) => elem.size === size && elem.color === color
+    );
+
+    // check if item does not exist
+    if (index === -1) {
       cartItems.push(productToAdd);
       user.markModified("cart");
       await user.save();
       return res.json(user);
     }
+
     // check if item exist in cart
     for (item of cartItems) {
       if (item.size === size && item.color === color) {
@@ -211,16 +224,6 @@ exports.addToCart = async (req, res, next) => {
         await user.save();
         return res.json(user);
       }
-    }
-    // check if item does not exist
-    let index = cartItems.findIndex(
-      (elem) => elem.size === size && elem.color === color
-    );
-    if (index === -1) {
-      cartItems.push(productToAdd);
-      user.markModified("cart");
-      await user.save();
-      return res.json(user);
     }
   } catch (error) {
     res.json(next(error));
