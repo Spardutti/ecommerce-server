@@ -8,26 +8,30 @@ require("dotenv").config();
 // NEW PRODUCT
 exports.newProduct = [
   body("productName").notEmpty().withMessage("Please enter a product name"),
-  (req, res, next) => {
-    const { productName } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.json(errors.array());
-    } else {
-      Category.findById(req.params.id, (err, category) => {
-        if (err) return next(err);
-        if (!category) {
-          res.status(400).json("Category not found");
-        } else {
-          new Product({
-            name: productName,
-            category,
-          }).save((err, newProduct) => {
-            if (err) return next(err);
-            res.json(newProduct);
-          });
-        }
-      });
+  body("productPrice")
+    .notEmpty()
+    .isNumeric()
+    .withMessage("Please enter the price of the product"),
+  async (req, res, next) => {
+    try {
+      const { productName } = req.body;
+      const price = parseInt(req.body.productPrice);
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(500).json(errors.array());
+      } else {
+        const category = await Category.findById(req.params.id);
+        if (!category) return res.status(500).json("Category not found");
+        const product = new Product({
+          name: productName,
+          price,
+          category,
+        });
+        await product.save();
+        return res.json(product);
+      }
+    } catch (error) {
+      res.status(500).json(next(err));
     }
   },
 ];
@@ -47,7 +51,7 @@ exports.updateProduct = [
     const quantity = parseInt(req.body.quantity);
     const price = parseInt(req.body.price);
     const errors = validationResult(req);
-    if (!errors.isEmpty()) res.json(errors.array());
+    if (!errors.isEmpty()) res.statsu(500).json(errors.array());
     else {
       try {
         const product = await Product.findById(req.params.id);
@@ -71,7 +75,7 @@ exports.updateProduct = [
           productToUpdate.quantity += quantity;
           product.markModified("sizeColor");
           await product.save();
-          return res.json(productToUpdate);
+          return res.json(product);
         }
       } catch (err) {
         res.status(500).json(next(err));
@@ -184,7 +188,8 @@ exports.addToCart = async (req, res, next) => {
     if (!product) res.status(500).json("Product not found");
     let cartItems = user.cart;
     let productDetails = product.sizeColor;
-    let productToAdd = { name: product.name, size, color, quantity };
+    let price = product.price;
+    let productToAdd = { name: product.name, size, color, quantity, price };
     // if not enough stock return.
     for (let detail of productDetails) {
       if (detail.quantity < quantity) {
@@ -216,16 +221,11 @@ exports.addToCart = async (req, res, next) => {
       user.markModified("cart");
       await user.save();
       return res.json(user);
-    }
-
-    // check if item exist in cart
-    for (item of cartItems) {
-      if (item.size === size && item.color === color) {
-        item.quantity += quantity;
-        user.markModified("cart");
-        await user.save();
-        return res.json(user);
-      }
+    } else {
+      cartItems[index].quantity += quantity;
+      user.markModified("cart");
+      await user.save();
+      return res.json(user);
     }
   } catch (error) {
     res.json(next(error));

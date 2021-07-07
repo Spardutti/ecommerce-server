@@ -49,7 +49,7 @@ exports.checkout = (req, res, next) => {
         items: [],
         back_urls: {
           success: "http://localhost:5000/feedback",
-          failure: "http://localhost:5000/feedback",
+          failure: "http://localhost:5000/failure",
           pending: "http://localhost:5000/feedback",
         },
         auto_return: "approved",
@@ -76,9 +76,10 @@ exports.checkout = (req, res, next) => {
 
 exports.feedback = (req, res, next) => {
   res.json({
-    Payment: req.query.payment_id,
+    hola: "hola",
+    /*Payment: req.query.payment_id,
     Status: req.query.status,
     MerchantOrder: req.query.merchant_order_id,
-    response: req.query,
+    response: req.query,*/
   });
 };
