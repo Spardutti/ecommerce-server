@@ -28,6 +28,16 @@ exports.newCategory = [
   },
 ];
 
+// GET ALL CATEGORIES
+exports.getAllCategories = async (req, res, next) => {
+  try {
+    const categories = await Category.find({});
+    res.status(200).json(categories);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 // REMOVE CATEGORY
 exports.removeCategory = async (req, res, next) => {
   try {

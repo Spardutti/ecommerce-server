@@ -61,6 +61,9 @@ router.post("/user/login", userController.localLogin);
 // NEW CATEGORY
 router.post("/category/new", categoryController.newCategory);
 
+// GET ALL CATEGORIES
+router.get("/categories", categoryController.getAllCategories);
+
 // REMOVE CATEGORY
 router.delete("/category/:id", categoryController.removeCategory);
 
