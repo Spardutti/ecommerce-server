@@ -35,6 +35,9 @@ const upload = multer({
 
 const jwtProtected = passport.authenticate("jwt", { session: false });
 
+// USER
+router.get("/user/:id", userController.user);
+
 // GOOGLE LOG IN
 router.get("/user/google/login", userController.googleLogin);
 
@@ -45,7 +48,7 @@ router.get("/user/google/success", userController.googleRedirect);
 router.get("/token", userController.jwtoken);
 
 // LOG OUT
-router.get("/user/logout", userController.logOut);
+router.get("/logout", userController.logOut);
 
 // CREATE NEW USER
 router.post("/user/new", userController.createUser);
@@ -69,6 +72,8 @@ router.post("/product/new/:id", productController.newProduct);
 // GET PRODUCT INFO
 router.get("/product/:id", productController.getProduct);
 
+// GET ALL PRODUCTS
+router.get("/products", productController.allProducts);
 // UPDATE PRODUCT INFO
 router.put("/product/update/:id", productController.updateProduct);
 

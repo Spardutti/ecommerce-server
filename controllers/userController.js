@@ -5,21 +5,16 @@ const { body, validationResult } = require("express-validator");
 const async = require("async");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
-const { uploadFile } = require("../s3");
 
-/* 
-exports.img = async (req, res, next) => {
-  console.log("here");
+// GET USER
+exports.user = async (req, res, next) => {
   try {
-    const result = await uploadFile(req.file);
-    console.log("uplaoded both");
-    res.json(result);
-  } catch (err) {
-    res.json(req.file);
+    const user = await User.findById(req.params.id);
+    res.json(user);
+  } catch (error) {
+    res.json(next(error));
   }
 };
-*/
-
 //GOOGLE LOGIN
 exports.googleLogin = (req, res, next) => {
   passport.authenticate("google", {
@@ -42,7 +37,7 @@ exports.jwtoken = (req, res, next) => {
     const token = jwt.sign(req.user.toJSON(), process.env.JWT_SECRET, {
       expiresIn: "60m",
     });
-    res.redirect("http://localhost:5000/user/logged?token=" + token);
+    res.redirect("http://localhost:3000/#/logged?token=" + token);
   } else res.redirect("http://localhost:5000/");
 };
 
@@ -73,7 +68,7 @@ exports.createUser = [
     const validationErrors = validationResult(req);
     // IF THERE ARE ERRORS
     if (!validationErrors.isEmpty()) {
-      res.json({ errors: validationErrors.array() });
+      res.status(500).json({ errors: validationErrors.array() });
     } else {
       const { username, email, password } = req.body;
       async.parallel(
@@ -117,7 +112,7 @@ exports.localLogin = (req, res, next) => {
   passport.authenticate("local", { session: false }, (err, user) => {
     if (err) return next(err);
     if (!user) {
-      res.status(401);
+      res.status(500);
       res.json("Wrong username or password");
     } else {
       req.login(user, { session: false }, (err) => {
@@ -125,7 +120,7 @@ exports.localLogin = (req, res, next) => {
         const token = jwt.sign(user.toJSON(), process.env.JWT_SECRET, {
           expiresIn: "60m",
         });
-        res.json(token);
+        res.json({ token, user });
       });
     }
   })(req, res, next);

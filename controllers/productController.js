@@ -142,6 +142,16 @@ exports.getProduct = (req, res, next) => {
   });
 };
 
+// GET ALL PRODUCT
+exports.allProducts = async (req, res, next) => {
+  try {
+    const products = await Product.find({});
+    return res.json(products);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 // DELETE PRODUCT IMAGE
 exports.deleteProductImage = (req, res, next) => {
   const { imageToDeleteIndex } = req.body;
@@ -177,7 +187,6 @@ exports.removeProduct = (req, res, next) => {
 };
 
 // ADD PRODUCT TO CURRENT USER CART
-// TODO FIGURE HOW TO ADD THE PRODUCT PRICE TO AVOID FUTURE ERRORS
 exports.addToCart = async (req, res, next) => {
   const { id, size, color } = req.body;
   const quantity = parseInt(req.body.quantity);
