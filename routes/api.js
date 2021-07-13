@@ -77,6 +77,7 @@ router.get("/product/:id", productController.getProduct);
 
 // GET ALL PRODUCTS
 router.get("/products", productController.allProducts);
+
 // UPDATE PRODUCT INFO
 router.put("/product/update/:id", productController.updateProduct);
 

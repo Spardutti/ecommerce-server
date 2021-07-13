@@ -13,7 +13,7 @@ exports.newProduct = [
     .withMessage("Please select a product category"),
   body("productPrice").notEmpty().withMessage("Please enter the product price"),
   async (req, res, next) => {
-    const { productName, productPrice } = req.body;
+    const { productName, productPrice, description } = req.body;
     const price = parseInt(productPrice);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -29,6 +29,7 @@ exports.newProduct = [
             name: productName,
             category,
             price,
+            description,
           });
           await product.save();
           return res.json(product);
@@ -45,17 +46,13 @@ exports.updateProduct = [
   body("size").notEmpty().withMessage("Please enter a size"),
   body("color").notEmpty().withMessage("Please enter a color"),
   body("quantity").isNumeric().notEmpty().withMessage("Please add a quantitiy"),
-  body("price")
-    .isNumeric()
-    .notEmpty()
-    .isNumeric()
-    .withMessage("Please add a valid price"),
+  body("price").isNumeric().notEmpty().withMessage("Please add a valid price"),
   async (req, res, next) => {
-    const { size, color } = req.body;
+    const { size, color, description } = req.body;
     const quantity = parseInt(req.body.quantity);
     const price = parseInt(req.body.price);
     const errors = validationResult(req);
-    if (!errors.isEmpty()) res.statsu(500).json(errors.array());
+    if (!errors.isEmpty()) res.status(500).json(errors.array());
     else {
       try {
         const product = await Product.findById(req.params.id);
@@ -67,7 +64,6 @@ exports.updateProduct = [
         // if no info, add it
         if (index === -1) {
           product.sizeColor.push(productInfo);
-          product.price = price;
           product.markModified("sizeColor");
           await product.save();
           return res.json(product);
@@ -77,6 +73,7 @@ exports.updateProduct = [
           let productToUpdate = product.sizeColor[index];
           product.price = price;
           productToUpdate.quantity += quantity;
+          product.description = description;
           product.markModified("sizeColor");
           await product.save();
           return res.json(product);
@@ -136,14 +133,13 @@ exports.productImage = [
 ];
 
 // GET PRODUCT INFO
-exports.getProduct = (req, res, next) => {
-  Product.findById(req.params.id, (err, product) => {
-    if (err) return next(err);
-    if (!product) res.status(400).json("Product not found");
-    else {
-      res.json(product);
-    }
-  });
+exports.getProduct = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    res.status(200).json(product);
+  } catch (err) {
+    return next(err);
+  }
 };
 
 // GET ALL PRODUCT
