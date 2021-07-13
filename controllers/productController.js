@@ -8,30 +8,34 @@ require("dotenv").config();
 // NEW PRODUCT
 exports.newProduct = [
   body("productName").notEmpty().withMessage("Please enter a product name"),
-  body("productPrice")
+  body("productCategory")
     .notEmpty()
-    .isNumeric()
-    .withMessage("Please enter the price of the product"),
+    .withMessage("Please select a product category"),
+  body("productPrice").notEmpty().withMessage("Please enter the product price"),
   async (req, res, next) => {
-    try {
-      const { productName } = req.body;
-      const price = parseInt(req.body.productPrice);
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array());
-      } else {
-        const category = await Category.findById(req.params.id);
-        if (!category) return res.status(500).json("Category not found");
-        const product = new Product({
-          name: productName,
-          price,
-          category,
-        });
-        await product.save();
-        return res.json(product);
+    const { productName, productPrice } = req.body;
+    const price = parseInt(productPrice);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(500).json(errors.array());
+    } else {
+      try {
+        const category = await Category.findById(req.body.productCategory);
+        const product = await Product.find({ name: productName });
+        if (product)
+          return res.status(500).json([{ msg: "Product already exists" }]);
+        else {
+          product = new Product({
+            name: productName,
+            category,
+            price,
+          });
+          await product.save();
+          return res.json(product);
+        }
+      } catch (error) {
+        res.status(500).json("Category not found");
       }
-    } catch (error) {
-      res.status(500).json(next(err));
     }
   },
 ];
