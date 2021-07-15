@@ -91,47 +91,42 @@ exports.updateProduct = [
 
 // ADD IMAGES TO PRODUCT
 exports.productImage = [
-  (req, res, next) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) res.json(errors.array());
     else {
-      Product.findById(req.params.id, (err, product) => {
-        if (err) return next(err);
-        if (!product) {
-          res.status(400);
-          return res.json("Product not found");
-        }
-        if (!req.files) {
-          return res.json("Please add at least 1 image to upload");
+      const product = await Product.findById(req.params.id);
+      if (!product) res.status(500).json("Product not found");
+      if (!req.files) {
+        return res.json("Please add at least 1 image to upload");
+      } else {
+        if (product.images.length + req.files.length > 5) {
+          res.status(500).json({
+            msg:
+              "This product currently have: " +
+              product.images.length +
+              " images. Maximun is 5. You are trying to upload: " +
+              req.files.length +
+              " images.",
+          });
         } else {
-          if (product.images.length + req.files.length > 5) {
-            res.status(400).json({
-              msg:
-                "This product currently have: " +
-                product.images.length +
-                " images. Maximun is 5. You are trying to upload: " +
-                req.files.length +
-                " images.",
-            });
-          } else {
-            let promises = [];
-            for (let i = 0; i < req.files.length; i++) {
-              promises.push(uploadFile(req.files[i]));
-            }
-            Promise.all(promises)
-              .then((data) => {
-                data.forEach((link) =>
-                  product.images.push({ url: link.Location, Key: link.Key })
-                );
-                product.save((err) => {
-                  if (err) return next(err);
-                  res.json(product);
-                });
-              })
-              .catch((err) => res.json(err));
+          let promises = [];
+          for (let i = 0; i < req.files.length; i++) {
+            promises.push(uploadFile(req.files[i]));
           }
+          Promise.all(promises)
+            .then((data) => {
+              data.forEach((link) =>
+                product.images.push({ url: link.Location, Key: link.Key })
+              );
+              product.save((err) => {
+                if (err) return next(err);
+                res.json(product);
+              });
+            })
+            .catch((err) => res.json(err));
         }
-      });
+      }
     }
   },
 ];
@@ -176,7 +171,7 @@ exports.deleteProductImage = (req, res, next) => {
 };
 
 // DELETE A PRODUCT WITH ALL INFO
-exports.removeProduct = (req, res, next) => {
+exports.removeProduct = async (req, res, next) => {
   Product.findByIdAndRemove(req.params.id, async (err, product) => {
     if (err) return next(err);
     if (!product) return res.status(400).json("Product not found");
@@ -192,54 +187,23 @@ exports.removeProduct = (req, res, next) => {
 
 // ADD PRODUCT TO CURRENT USER CART
 exports.addToCart = async (req, res, next) => {
-  const { id, size, color } = req.body;
+  const { id } = req.body;
   const quantity = parseInt(req.body.quantity);
   try {
     const user = await User.findById(req.params.id);
-    if (!user) res.status(500).json("User not found");
+    if (!user) return res.status(500).json("User not found");
     const product = await Product.findById(id);
-    if (!product) res.status(500).json("Product not found");
+    if (!product) return res.status(500).json("Product not found");
     let cartItems = user.cart;
-    let productDetails = product.sizeColor;
     let price = product.price;
-    let productToAdd = { name: product.name, size, color, quantity, price };
     // if not enough stock return.
-    for (let detail of productDetails) {
-      if (detail.quantity < quantity) {
-        return res
-          .status(500)
-          .json(
-            "Not enough stock of " +
-              productToAdd.name +
-              ", size: " +
-              size +
-              ", color: " +
-              color
-          );
-      }
-    }
-    // check if the product exist
-    let productIndex = productDetails.findIndex(
-      (elem) => elem.size === size && elem.color === color
-    );
-    if (productIndex === -1) return res.status(500).json("Item out of stock");
+    if (product.quantity < quantity)
+      return res.status(500).json("Not enough stock of " + product.name);
 
-    let index = cartItems.findIndex(
-      (elem) => elem.size === size && elem.color === color
-    );
-
-    // check if item does not exist
-    if (index === -1) {
-      cartItems.push(productToAdd);
-      user.markModified("cart");
-      await user.save();
-      return res.json(user);
-    } else {
-      cartItems[index].quantity += quantity;
-      user.markModified("cart");
-      await user.save();
-      return res.json(user);
-    }
+    cartItems.push(product);
+    user.markModified("cart");
+    await user.save();
+    return res.json(user);
   } catch (error) {
     res.json(next(error));
   }
