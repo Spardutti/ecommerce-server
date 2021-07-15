@@ -12,8 +12,21 @@ exports.newProduct = [
     .notEmpty()
     .withMessage("Please select a product category"),
   body("productPrice").notEmpty().withMessage("Please enter the product price"),
+  body("productSize")
+    .notEmpty()
+    .toUpperCase()
+    .withMessage("Please enter the product size"),
+  body("productColor").notEmpty().withMessage("Please enter the product color"),
+  body("quantity").notEmpty().withMessage("Please enter the product quantity"),
   async (req, res, next) => {
-    const { productName, productPrice, description } = req.body;
+    const {
+      productName,
+      productPrice,
+      description,
+      productSize,
+      productColor,
+      quantity,
+    } = req.body;
     const price = parseInt(productPrice);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -21,34 +34,40 @@ exports.newProduct = [
     } else {
       try {
         const category = await Category.findById(req.body.productCategory);
-        const product = await Product.find({ name: productName });
-        if (product)
+        const product = await Product.find({
+          name: productName,
+          size: productSize,
+          color: productColor,
+        });
+        if (product.length)
           return res.status(500).json([{ msg: "Product already exists" }]);
         else {
-          product = new Product({
+          const product = new Product({
             name: productName,
             category,
             price,
             description,
+            size: productSize,
+            color: productColor,
+            quantity,
           });
           await product.save();
           return res.json(product);
         }
       } catch (error) {
-        res.status(500).json("Category not found");
+        res.status(500);
+        return next(error);
       }
     }
   },
 ];
 
-// UPDATE PRODUCT/ ADD SIZE AND COLOR & PRICE
+// UPDATE PRODUCT QUANTITY AND/OR PRICE
 exports.updateProduct = [
-  body("size").notEmpty().withMessage("Please enter a size"),
-  body("color").notEmpty().withMessage("Please enter a color"),
-  body("quantity").isNumeric().notEmpty().withMessage("Please add a quantitiy"),
-  body("price").isNumeric().notEmpty().withMessage("Please add a valid price"),
+  body("quantity").notEmpty().withMessage("Please add a quantity"),
+  body("price").notEmpty().withMessage("Please add a valid price"),
   async (req, res, next) => {
-    const { size, color, description } = req.body;
+    const { description } = req.body;
     const quantity = parseInt(req.body.quantity);
     const price = parseInt(req.body.price);
     const errors = validationResult(req);
@@ -56,30 +75,15 @@ exports.updateProduct = [
     else {
       try {
         const product = await Product.findById(req.params.id);
-        const productInfo = { size, color, quantity };
-
-        let index = product.sizeColor.findIndex(
-          (elem) => elem.size === size && elem.color === color
-        );
-        // if no info, add it
-        if (index === -1) {
-          product.sizeColor.push(productInfo);
-          product.markModified("sizeColor");
-          await product.save();
-          return res.json(product);
-        }
-        // else update the info
-        else {
-          let productToUpdate = product.sizeColor[index];
-          product.price = price;
-          productToUpdate.quantity += quantity;
-          product.description = description;
-          product.markModified("sizeColor");
-          await product.save();
-          return res.json(product);
-        }
+        if (!product) return res.status(500).json("Product not found");
+        product.price = price;
+        product.quantity += quantity;
+        product.description = description;
+        await product.save();
+        return res.json(product);
       } catch (err) {
-        res.status(500).json(next(err));
+        res.status(500);
+        return next(err);
       }
     }
   },

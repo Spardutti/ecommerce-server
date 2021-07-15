@@ -4,8 +4,10 @@ const Schema = mongoose.Schema;
 const ProductSchema = new Schema({
   name: String,
   images: [],
-  sizeColor: [],
+  color: String,
+  size: String,
   price: Number,
+  quantity: Number,
   description: String,
   category: { type: Schema.Types.ObjectId, ref: "Category" },
 });
