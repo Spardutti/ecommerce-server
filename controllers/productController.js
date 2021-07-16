@@ -7,49 +7,36 @@ require("dotenv").config();
 
 // NEW PRODUCT
 exports.newProduct = [
-  body("productName").notEmpty().withMessage("Please enter a product name"),
-  body("productCategory")
-    .notEmpty()
-    .withMessage("Please select a product category"),
-  body("productPrice").notEmpty().withMessage("Please enter the product price"),
-  body("productSize")
+  body("name").notEmpty().withMessage("Please enter a product name"),
+  body("category").notEmpty().withMessage("Please select a product category"),
+  body("price").notEmpty().withMessage("Please enter the product price"),
+  body("size")
     .notEmpty()
     .toUpperCase()
     .withMessage("Please enter the product size"),
-  body("productColor").notEmpty().withMessage("Please enter the product color"),
+  body("color").notEmpty().withMessage("Please enter the product color"),
   body("quantity").notEmpty().withMessage("Please enter the product quantity"),
   async (req, res, next) => {
-    const {
-      productName,
-      productPrice,
-      description,
-      productSize,
-      productColor,
-      quantity,
-    } = req.body;
-    const price = parseInt(productPrice);
+    const { name, description, size, color } = req.body;
+    const price = parseInt(req.body.price);
+    const quantity = parseInt(req.body.quantity);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(500).json(errors.array());
     } else {
       try {
-        const category = await Category.findById(req.body.productCategory);
+        const category = await Category.findById(req.body.category);
         const product = await Product.find({
-          name: productName,
-          size: productSize,
-          color: productColor,
+          name,
         });
         if (product.length)
           return res.status(500).json([{ msg: "Product already exists" }]);
         else {
           const product = new Product({
-            name: productName,
-            category,
-            price,
+            name,
+            details: [{ color, size, quantity, price }],
             description,
-            size: productSize,
-            color: productColor,
-            quantity,
+            category,
           });
           await product.save();
           return res.json(product);
@@ -134,7 +121,7 @@ exports.productImage = [
 // GET PRODUCT INFO
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne(req.params.id);
     res.status(200).json(product);
   } catch (err) {
     return next(err);
