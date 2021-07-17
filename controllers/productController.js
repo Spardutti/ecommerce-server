@@ -26,10 +26,10 @@ exports.newProduct = [
     } else {
       try {
         const category = await Category.findById(req.body.category);
-        const product = await Product.find({
+        const product = await Product.findOne({
           name,
         });
-        if (product.length)
+        if (product)
           return res.status(500).json([{ msg: "Product already exists" }]);
         else {
           const product = new Product({
@@ -49,32 +49,37 @@ exports.newProduct = [
   },
 ];
 
-// UPDATE PRODUCT QUANTITY AND/OR PRICE
-exports.updateProduct = [
-  body("quantity").notEmpty().withMessage("Please add a quantity"),
-  body("price").notEmpty().withMessage("Please add a valid price"),
-  async (req, res, next) => {
-    const { description } = req.body;
-    const quantity = parseInt(req.body.quantity);
-    const price = parseInt(req.body.price);
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) res.status(500).json(errors.array());
-    else {
-      try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(500).json("Product not found");
-        product.price = price;
-        product.quantity += quantity;
-        product.description = description;
-        await product.save();
-        return res.json(product);
-      } catch (err) {
-        res.status(500);
-        return next(err);
+// UPDATE PRODUCT DETAILS
+exports.updateProduct = async (req, res, next) => {
+  const { description, color } = req.body;
+  const size = req.body.size.toUpperCase();
+  const quantity = parseInt(req.body.quantity);
+  const price = parseInt(req.body.price);
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(500).json("Product not found");
+    const { details } = product;
+    for (let prop of details) {
+      if (prop.size == size && prop.color == color) {
+        let index = details.indexOf(prop);
+        details[index].quantity += quantity;
+        details[index].price = price;
+        break;
+      } else {
+        const newDetail = { color, size, quantity, price };
+        details.push(newDetail);
+        break;
       }
     }
-  },
-];
+    product.description = description;
+    product.markModified("details");
+    await product.save();
+    return res.json(product);
+  } catch (err) {
+    res.status(500);
+    return next(err);
+  }
+};
 
 // ADD IMAGES TO PRODUCT
 exports.productImage = [
@@ -174,20 +179,68 @@ exports.removeProduct = async (req, res, next) => {
 
 // ADD PRODUCT TO CURRENT USER CART
 exports.addToCart = async (req, res, next) => {
-  const { id } = req.body;
+  const { id, color } = req.body;
   const quantity = parseInt(req.body.quantity);
+  const size = req.body.size.toUpperCase();
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(500).json("User not found");
     const product = await Product.findById(id);
     if (!product) return res.status(500).json("Product not found");
-    let cartItems = user.cart;
-    let price = product.price;
-    // if not enough stock return.
-    if (product.quantity < quantity)
-      return res.status(500).json("Not enough stock of " + product.name);
+    const { details } = product;
+    const { cart } = user;
+    // CHECK IF PRODUCT IS IN THE CART
+    const productIndex = cart.findIndex((elem) => elem.name === product.name);
+    if (productIndex < 0 || !cart.length) {
+      const detailIndex = details.findIndex(
+        (elem) => elem.size === size && elem.color === color
+      );
+      // CHECK QUANTITY
+      if (details[detailIndex].quantity >= quantity) {
+        // GET THE SPECIFIC DETAILS TO ADD TO CART
+        const detailToAdd = details.splice(detailIndex, 1);
+        detailToAdd.map((elem) => (elem.quantity = quantity));
+        product.details = detailToAdd;
+        cart.push(product);
+      } else {
+        return res
+          .status(500)
+          .json(
+            `${product.name} size: ${size} and color: ${color} is not currently in stock`
+          );
+      }
+    }
+    // IF PRODUCT EXIST CHECK FOR DETAILS
+    else {
+      const userCart = cart[productIndex];
+      const detailInCartIndex = userCart.details.findIndex(
+        (elem) => elem.size === size && elem.color === color
+      );
+      // ADD NEW DETAILS
+      if (detailInCartIndex < 0) {
+        const detailIndex = details.findIndex(
+          (elem) => elem.size === size && elem.color === color
+        );
+        // CHECK QUANTITY
+        if (details[detailIndex].quantity >= quantity) {
+          // GET THE SPECIFIC DETAILS TO ADD TO CART
+          const detailToAdd = details.splice(detailIndex, 1);
+          detailToAdd.map((elem) => (elem.quantity = quantity));
+          userCart.details.push(detailToAdd[0]);
+        } else {
+          return res
+            .status(500)
+            .json(
+              `${product.name} size: ${size} and color: ${color} is not currently in stock`
+            );
+        }
+      }
+      // IF DETAILS EXIST UPDATE THEM
+      else {
+        userCart.details[detailInCartIndex].quantity += quantity;
+      }
+    }
 
-    cartItems.push(product);
     user.markModified("cart");
     await user.save();
     return res.json(user);
