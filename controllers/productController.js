@@ -9,13 +9,17 @@ require("dotenv").config();
 exports.newProduct = [
   body("name").notEmpty().withMessage("Please enter a product name"),
   body("category").notEmpty().withMessage("Please select a product category"),
-  body("price").notEmpty().withMessage("Please enter the product price"),
+  body("price")
+    .isFloat({ min: 1, max: 999999 })
+    .withMessage("Please enter the product price"),
   body("size")
     .notEmpty()
     .toUpperCase()
     .withMessage("Please enter the product size"),
   body("color").notEmpty().withMessage("Please enter the product color"),
-  body("quantity").notEmpty().withMessage("Please enter the product quantity"),
+  body("quantity")
+    .isFloat({ min: 1, max: 9999 })
+    .withMessage("Please enter the product quantity"),
   async (req, res, next) => {
     const { name, description, size, color } = req.body;
     const price = parseInt(req.body.price);

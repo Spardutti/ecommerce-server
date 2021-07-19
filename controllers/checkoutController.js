@@ -8,6 +8,7 @@ mercadopago.configure({
     "APP_USR-5713106896067816-062820-4039e5c8877d6946b5645719d0f423ae-782636851",
 });
 
+// TODO FIX THIS
 // CHECK IF STOCK IF AVAILABLE BEFORE CHECKOUT
 exports.checkCartStock = async (req, res, next) => {
   try {
