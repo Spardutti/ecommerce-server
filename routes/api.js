@@ -81,6 +81,9 @@ router.get("/products", productController.allProducts);
 // UPDATE PRODUCT INFO
 router.put("/product/update/:id", productController.updateProduct);
 
+// DELETE PRODUCT INFO/DETAIL
+router.delete("/product/details/:id", productController.deleteProductDetail);
+
 // ADD PRODUCT IMAGE
 router.put(
   "/product/image/:id",

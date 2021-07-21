@@ -13,6 +13,8 @@ exports.newProduct = [
     .isFloat({ min: 1, max: 999999 })
     .withMessage("Please enter the product price"),
   body("size")
+    .isLength({ max: 2 })
+    .withMessage("Size cant be longer than 2, ex: XL, M, S.")
     .notEmpty()
     .toUpperCase()
     .withMessage("Please enter the product size"),
@@ -55,8 +57,7 @@ exports.newProduct = [
 
 // UPDATE PRODUCT DETAILS
 exports.updateProduct = async (req, res, next) => {
-  const { description, color } = req.body;
-  const size = req.body.size.toUpperCase();
+  const { description, color, size } = req.body;
   const quantity = parseInt(req.body.quantity);
   const price = parseInt(req.body.price);
   try {
@@ -68,20 +69,34 @@ exports.updateProduct = async (req, res, next) => {
         let index = details.indexOf(prop);
         details[index].quantity += quantity;
         details[index].price = price;
-        break;
+        product.description = description;
+        product.markModified("details");
+        await product.save();
+        return res.json(details[index]);
       } else {
         const newDetail = { color, size, quantity, price };
         details.push(newDetail);
-        break;
+        product.description = description;
+        product.markModified("details");
+        await product.save();
+        return res.json(newDetail);
       }
     }
-    product.description = description;
-    product.markModified("details");
-    await product.save();
-    return res.json(product);
   } catch (err) {
     res.status(500);
     return next(err);
+  }
+};
+
+// DELETE PRODUCT DETAIL
+exports.deleteProductDetail = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    product.details.splice(req.body.index, 1);
+    await product.save();
+    return res.json(product);
+  } catch (err) {
+    return res.json(next(err));
   }
 };
 
@@ -130,10 +145,10 @@ exports.productImage = [
 // GET PRODUCT INFO
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findOne(req.params.id);
+    const product = await Product.findById(req.params.id);
     res.status(200).json(product);
   } catch (err) {
-    return next(err);
+    return res.json(next(err));
   }
 };
 
