@@ -70,7 +70,11 @@ router.delete("/category/:id", categoryController.removeCategory);
 /******************************************* PRODUCTS */
 
 // CREATE NEW PRODUCT
-router.post("/product/new", productController.newProduct);
+router.post(
+  "/product/new",
+  upload.array("image", 5),
+  productController.newProduct
+);
 
 // GET PRODUCT INFO
 router.get("/product/:id", productController.getProduct);

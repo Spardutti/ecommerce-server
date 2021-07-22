@@ -28,6 +28,9 @@ exports.newProduct = [
     const quantity = parseInt(req.body.quantity);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      if (!req.files[0]) {
+        errors.errors.push({ msg: "Please add a product image" });
+      }
       return res.status(500).json(errors.array());
     } else {
       try {
@@ -38,12 +41,14 @@ exports.newProduct = [
         if (product)
           return res.status(500).json([{ msg: "Product already exists" }]);
         else {
+          const image = await uploadFile(req.files[0]);
           const product = new Product({
             name,
             details: [{ color, size, quantity, price }],
             description,
             category,
           });
+          product.images.push(image.Location);
           await product.save();
           return res.json(product);
         }
@@ -54,6 +59,22 @@ exports.newProduct = [
     }
   },
 ];
+/* 
+          let promises = [];
+          for (let i = 0; i < req.files.length; i++) {
+            promises.push(uploadFile(req.files[i]));
+          }
+          Promise.all(promises)
+            .then((data) => {
+              data.forEach((link) =>
+                product.images.push({ url: link.Location, Key: link.Key })
+              );
+              product.save((err) => {
+                if (err) return next(err);
+                res.json(product);
+              });
+            })
+            .catch((err) => res.json(err)); */
 
 // UPDATE PRODUCT DETAILS
 exports.updateProduct = async (req, res, next) => {
@@ -64,23 +85,35 @@ exports.updateProduct = async (req, res, next) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(500).json("Product not found");
     const { details } = product;
-    for (let prop of details) {
-      if (prop.size == size && prop.color == color) {
-        let index = details.indexOf(prop);
-        details[index].quantity += quantity;
-        details[index].price = price;
-        product.description = description;
-        product.markModified("details");
-        await product.save();
-        return res.json(details[index]);
-      } else {
-        const newDetail = { color, size, quantity, price };
-        details.push(newDetail);
-        product.description = description;
-        product.markModified("details");
-        await product.save();
-        return res.json(newDetail);
+    if (details.length > 0) {
+      for (let prop of details) {
+        // EDIT EXISTING DETAIL
+        if (prop.size == size && prop.color == color) {
+          let index = details.indexOf(prop);
+          details[index].quantity += quantity;
+          details[index].price = price;
+          product.description = description;
+          product.markModified("details");
+          await product.save();
+          return res.json(product);
+        } else {
+          // ADD NEW DETAIL
+          const newDetail = { color, size, quantity, price };
+          details.push(newDetail);
+          product.description = description;
+          product.markModified("details");
+          await product.save();
+          return res.json(newDetail);
+        }
       }
+    } else {
+      // ADD NEW DETAIL
+      const newDetail = { color, size, quantity, price };
+      details.push(newDetail);
+      product.description = description;
+      product.markModified("details");
+      await product.save();
+      return res.json(newDetail);
     }
   } catch (err) {
     res.status(500);
