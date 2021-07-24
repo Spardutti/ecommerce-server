@@ -48,7 +48,7 @@ exports.newProduct = [
             description,
             category,
           });
-          product.images.push(image.Location);
+          product.images.push({ url: image.Location, key: image.Key });
           await product.save();
           return res.json(product);
         }
@@ -59,22 +59,6 @@ exports.newProduct = [
     }
   },
 ];
-/* 
-          let promises = [];
-          for (let i = 0; i < req.files.length; i++) {
-            promises.push(uploadFile(req.files[i]));
-          }
-          Promise.all(promises)
-            .then((data) => {
-              data.forEach((link) =>
-                product.images.push({ url: link.Location, Key: link.Key })
-              );
-              product.save((err) => {
-                if (err) return next(err);
-                res.json(product);
-              });
-            })
-            .catch((err) => res.json(err)); */
 
 // UPDATE PRODUCT DETAILS
 exports.updateProduct = async (req, res, next) => {
@@ -137,6 +121,8 @@ exports.deleteProductDetail = async (req, res, next) => {
 exports.productImage = [
   async (req, res, next) => {
     const errors = validationResult(req);
+    if (!req.files[0])
+      errors.errors.push({ msg: "Please add at least 1 image to add" });
     if (!errors.isEmpty()) res.json(errors.array());
     else {
       const product = await Product.findById(req.params.id);
@@ -200,15 +186,16 @@ exports.deleteProductImage = (req, res, next) => {
   const { imageToDeleteIndex } = req.body;
   Product.findById(req.params.id, async (err, product) => {
     if (err) return next(err);
-    if (!product) res.status(400).json("Product not found");
+    if (!product) res.status(500).json("Product not found");
     else {
-      if (!product.images) return res.json("No image to delete");
+      if (!product.images || !product.images[imageToDeleteIndex])
+        return res.status(500).json("No image to delete");
       const imageKey = product.images[imageToDeleteIndex].Key;
       product.images.splice(imageToDeleteIndex, 1);
       await deleteFileFromS3(imageKey);
       product.save((err) => {
         if (err) return next(err);
-        res.json("Image deleted succesfully");
+        return res.status(200).json(product);
       });
     }
   });

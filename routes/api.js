@@ -91,7 +91,7 @@ router.delete("/product/details/:id", productController.deleteProductDetail);
 // ADD PRODUCT IMAGE
 router.put(
   "/product/image/:id",
-  upload.array("image", 5),
+  upload.array("image", 4),
   productController.productImage
 );
 
