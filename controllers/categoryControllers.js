@@ -38,6 +38,16 @@ exports.getAllCategories = async (req, res, next) => {
   }
 };
 
+// GET PRODUCT BY CATEGORY
+exports.productByCat = async (req, res, next) => {
+  try {
+    const products = await Product.find({ category: req.body.category });
+    res.status(200).json(products);
+  } catch (err) {
+    res.status(500).json(next(err));
+  }
+};
+
 // REMOVE CATEGORY
 exports.removeCategory = async (req, res, next) => {
   try {

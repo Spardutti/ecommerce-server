@@ -60,9 +60,21 @@ exports.newProduct = [
   },
 ];
 
+// UPDATE PRODUCT DESCRIPTION
+exports.udpateDescription = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    product.description = req.body.description;
+    await product.save();
+    res.json(product);
+  } catch (err) {
+    return res.json(next(err));
+  }
+};
+
 // UPDATE PRODUCT DETAILS
 exports.updateProduct = async (req, res, next) => {
-  const { description, color, size } = req.body;
+  const { color, size } = req.body;
   const quantity = parseInt(req.body.quantity);
   const price = parseInt(req.body.price);
   try {
@@ -76,7 +88,6 @@ exports.updateProduct = async (req, res, next) => {
           let index = details.indexOf(prop);
           details[index].quantity += quantity;
           details[index].price = price;
-          product.description = description;
           product.markModified("details");
           await product.save();
           return res.json(product);
@@ -84,7 +95,6 @@ exports.updateProduct = async (req, res, next) => {
           // ADD NEW DETAIL
           const newDetail = { color, size, quantity, price };
           details.push(newDetail);
-          product.description = description;
           product.markModified("details");
           await product.save();
           return res.json(newDetail);
@@ -94,7 +104,6 @@ exports.updateProduct = async (req, res, next) => {
       // ADD NEW DETAIL
       const newDetail = { color, size, quantity, price };
       details.push(newDetail);
-      product.description = description;
       product.markModified("details");
       await product.save();
       return res.json(newDetail);

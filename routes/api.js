@@ -67,6 +67,9 @@ router.get("/categories", categoryController.getAllCategories);
 // REMOVE CATEGORY
 router.delete("/category/:id", categoryController.removeCategory);
 
+// PRODUCT BY CATEGORY
+router.post("/category/product", categoryController.productByCat);
+
 /******************************************* PRODUCTS */
 
 // CREATE NEW PRODUCT
@@ -84,6 +87,9 @@ router.get("/products", productController.allProducts);
 
 // UPDATE PRODUCT INFO
 router.put("/product/update/:id", productController.updateProduct);
+
+// UPDATE DESCRIPTION
+router.put("/product/description/:id", productController.udpateDescription);
 
 // DELETE PRODUCT INFO/DETAIL
 router.delete("/product/details/:id", productController.deleteProductDetail);
