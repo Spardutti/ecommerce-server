@@ -22,8 +22,9 @@ exports.newProduct = [
   body("quantity")
     .isFloat({ min: 1, max: 9999 })
     .withMessage("Please enter the product quantity"),
+  body("description").notEmpty().withMessage("Please add a brief description"),
   async (req, res, next) => {
-    const { name, description, size, color } = req.body;
+    const { name, size, color, description } = req.body;
     const price = parseInt(req.body.price);
     const quantity = parseInt(req.body.quantity);
     const errors = validationResult(req);
@@ -299,12 +300,17 @@ exports.addToCart = async (req, res, next) => {
 
 // DELETE PRODUCT FROM CART
 exports.removeFromCart = async (req, res, next) => {
+  const { productId, userId, index } = req.body;
   try {
-    const user = await User.findById(req.params.id);
-    const { indexToDelete } = req.body;
-    user.cart.splice(indexToDelete, 1);
-    user.markModified("cart");
-    await user.save();
+    // GET THE USER
+    const user = await User.findById(userId);
+    // GET THE PRODUCT
+    const product = await Product.findById(productId);
+    // REMOVE THE PRODUCT DETAIL OR PRODUCT
+    if (product.details[index]) console.log(product.details[index]);
+    else console.log(product);
+    /* user.markModified("cart");
+    await user.save();*/
     res.json(user);
   } catch (err) {
     res.status(500).json(next(err));

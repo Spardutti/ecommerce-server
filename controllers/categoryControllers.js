@@ -4,20 +4,20 @@ const { body, validationResult } = require("express-validator");
 
 // CREATE NEW CATEGORY
 exports.newCategory = [
-  body("categoryName").notEmpty().withMessage("Please enter a category name"),
+  body("name").notEmpty().withMessage("Please enter a category name"),
 
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) res.status(500).json(errors.array());
     else {
-      const { categoryName } = req.body;
-      Category.findOne({ name: categoryName }, (err, category) => {
+      const { name } = req.body;
+      Category.findOne({ name }, (err, category) => {
         if (err) return next(err);
         if (category) {
           res.status(400).json("Category already exist");
         } else {
           new Category({
-            name: categoryName,
+            name,
           }).save((err, newCategory) => {
             if (err) return next(err);
             res.json(newCategory);

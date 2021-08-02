@@ -114,7 +114,7 @@ router.delete("/product/:id", productController.removeProduct);
 router.put("/product/cart/:id", productController.addToCart);
 
 // REMOVE PRODUCT FROM USER CART
-router.delete("/product/cart/:id", productController.removeFromCart);
+router.delete("/user/product/cart", productController.removeFromCart);
 
 /***************************************** CHECKOUT */
 
