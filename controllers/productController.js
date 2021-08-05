@@ -45,7 +45,8 @@ exports.newProduct = [
           const image = await uploadFile(req.files[0]);
           const product = new Product({
             name,
-            details: [{ color, size, quantity, price }],
+            details: [{ color, size, quantity }],
+            price,
             description,
             category,
           });
@@ -77,7 +78,6 @@ exports.udpateDescription = async (req, res, next) => {
 exports.updateProduct = async (req, res, next) => {
   const { color, size } = req.body;
   const quantity = parseInt(req.body.quantity);
-  const price = parseInt(req.body.price);
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(500).json("Product not found");
@@ -87,14 +87,13 @@ exports.updateProduct = async (req, res, next) => {
         // EDIT EXISTING DETAIL
         if (prop.size == size && prop.color == color) {
           let index = details.indexOf(prop);
-          details[index].quantity += quantity;
-          details[index].price = price;
+          details[index].quantity = quantity;
           product.markModified("details");
           await product.save();
           return res.json(product);
         } else {
           // ADD NEW DETAIL
-          const newDetail = { color, size, quantity, price };
+          const newDetail = { color, size, quantity };
           details.push(newDetail);
           product.markModified("details");
           await product.save();
@@ -103,7 +102,7 @@ exports.updateProduct = async (req, res, next) => {
       }
     } else {
       // ADD NEW DETAIL
-      const newDetail = { color, size, quantity, price };
+      const newDetail = { color, size, quantity };
       details.push(newDetail);
       product.markModified("details");
       await product.save();
@@ -119,9 +118,15 @@ exports.updateProduct = async (req, res, next) => {
 exports.deleteProductDetail = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
+    if (product.details.length <= 1) {
+      return res.status(500).json({
+        msg: "Product cant be empty, either remove the product or add new info",
+        status: 500,
+      });
+    }
     product.details.splice(req.body.index, 1);
     await product.save();
-    return res.json(product);
+    return res.status(200).json(product);
   } catch (err) {
     return res.json(next(err));
   }
@@ -238,19 +243,27 @@ exports.addToCart = async (req, res, next) => {
     if (!product) return res.status(500).json("Product not found");
     const { details } = product;
     const { cart } = user;
+    // FIND THE DETAILS OF THE PRODUCT, SIZE/COLOR
+    const detailIndex = details.findIndex(
+      (elem) => elem.size === size && elem.color === color
+    );
+    // CREATE A NEW OBJECT TO ADD TO THE CART
+    let detail = details[detailIndex];
+    const productToAdd = {
+      name: product.name,
+      category: product.category,
+      size: detail.size,
+      color: detail.color,
+      quantity,
+      price: product.price,
+      image: product.images[0].url,
+    };
     // CHECK IF PRODUCT IS IN THE CART
     const productIndex = cart.findIndex((elem) => elem.name === product.name);
     if (productIndex < 0 || !cart.length) {
-      const detailIndex = details.findIndex(
-        (elem) => elem.size === size && elem.color === color
-      );
       // CHECK QUANTITY
       if (details[detailIndex].quantity >= quantity) {
-        // GET THE SPECIFIC DETAILS TO ADD TO CART
-        const detailToAdd = details.splice(detailIndex, 1);
-        detailToAdd.map((elem) => (elem.quantity = quantity));
-        product.details = detailToAdd;
-        cart.push(product);
+        cart.push(productToAdd);
       } else {
         return res
           .status(500)
@@ -262,20 +275,14 @@ exports.addToCart = async (req, res, next) => {
     // IF PRODUCT EXIST CHECK FOR DETAILS
     else {
       const userCart = cart[productIndex];
-      const detailInCartIndex = userCart.details.findIndex(
-        (elem) => elem.size === size && elem.color === color
-      );
-      // ADD NEW DETAILS
-      if (detailInCartIndex < 0) {
-        const detailIndex = details.findIndex(
-          (elem) => elem.size === size && elem.color === color
-        );
-        // CHECK QUANTITY
+      // IF PRODUCT COLOR AND SIZE ARE THE SAME, UPDATE THE QUANTITY
+      if (userCart.color === color && userCart.size === size) {
+        userCart.quantity++;
+      }
+      // IF IT IS A NEW PRODUCT, ADD IT
+      else {
         if (details[detailIndex].quantity >= quantity) {
-          // GET THE SPECIFIC DETAILS TO ADD TO CART
-          const detailToAdd = details.splice(detailIndex, 1);
-          detailToAdd.map((elem) => (elem.quantity = quantity));
-          userCart.details.push(detailToAdd[0]);
+          cart.push(productToAdd);
         } else {
           return res
             .status(500)
@@ -283,10 +290,6 @@ exports.addToCart = async (req, res, next) => {
               `${product.name} size: ${size} and color: ${color} is not currently in stock`
             );
         }
-      }
-      // IF DETAILS EXIST UPDATE THEM
-      else {
-        userCart.details[detailInCartIndex].quantity += quantity;
       }
     }
 
@@ -301,6 +304,7 @@ exports.addToCart = async (req, res, next) => {
 // DELETE PRODUCT FROM CART
 exports.removeFromCart = async (req, res, next) => {
   const { productId, userId, index } = req.body;
+  // TODO WORKING HERE
   try {
     // GET THE USER
     const user = await User.findById(userId);
