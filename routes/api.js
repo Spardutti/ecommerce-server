@@ -113,8 +113,8 @@ router.delete("/product/:id", productController.removeProduct);
 // ADD PRODUCT TO USER CART
 router.put("/product/cart/:id", productController.addToCart);
 
-// REMOVE PRODUCT FROM USER CART
-router.delete("/user/product/cart", productController.removeFromCart);
+// UPDATE USER CART
+router.put("/user/product/cart/:id", productController.updateUserCart);
 
 /***************************************** CHECKOUT */
 

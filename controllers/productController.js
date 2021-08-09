@@ -301,22 +301,15 @@ exports.addToCart = async (req, res, next) => {
   }
 };
 
-// DELETE PRODUCT FROM CART
-exports.removeFromCart = async (req, res, next) => {
-  const { productId, userId, index } = req.body;
-  // TODO WORKING HERE
+// UPDATE USER CART ADD/ REMOVE
+exports.updateUserCart = async (req, res, next) => {
   try {
-    // GET THE USER
-    const user = await User.findById(userId);
-    // GET THE PRODUCT
-    const product = await Product.findById(productId);
-    // REMOVE THE PRODUCT DETAIL OR PRODUCT
-    if (product.details[index]) console.log(product.details[index]);
-    else console.log(product);
-    /* user.markModified("cart");
-    await user.save();*/
+    const user = await User.findById(req.params.id);
+    user.cart = req.body.cart;
+    user.markModified("cart");
+    await user.save();
     res.json(user);
   } catch (err) {
-    res.status(500).json(next(err));
+    res.json(next(err));
   }
 };
