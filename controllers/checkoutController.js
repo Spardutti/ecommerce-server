@@ -14,14 +14,21 @@ exports.checkCartStock = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
     const itemsToCheck = user.cart;
+    let products = [];
+    for (cartProduct of itemsToCheck) {
+      products.push(await Product.findOne({ name: cartProduct.name }));
+    }
+    // WE NEED A WAY TO COMPARE ITEMS IN USER CART WITH THE ITEMS FOUND AND CHECK TEH QUANTITY OF BOTH
+    /*
     for (cartProduct of itemsToCheck) {
       const products = await Product.find({ name: cartProduct.name });
       for (product of products) {
+        console.log(cartProduct.quantity, product);
         if (cartProduct.quantity <= product.quantity) {
           res.redirect("/checkout" + user.id);
         } else return res.status(500).json(cartProduct.name + " out of stock");
       }
-    }
+    }*/
   } catch (error) {
     res.status(500).json(error);
   }
@@ -47,6 +54,7 @@ exports.checkout = (req, res, next) => {
           title: item.name,
           unit_price: item.price,
           quantity: item.quantity,
+          picture_url: item.image,
         });
       });
       console.log(preference);
