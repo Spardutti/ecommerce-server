@@ -118,11 +118,8 @@ router.put("/user/product/cart/:id", productController.updateUserCart);
 
 /***************************************** CHECKOUT */
 
-// CHECK ITEMS STOCK BEFORE GOING TO CHECKOUT
-router.post("/stock/:id", checkoutController.checkCartStock);
-
 // TEST
-router.get("/checkout/:id", checkoutController.checkout);
+router.post("/checkout/:id", checkoutController.checkout);
 
 //TEST
 router.get("/feedback", checkoutController.feedback);
