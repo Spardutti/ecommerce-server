@@ -10,6 +10,7 @@ const UserSchema = new Schema({
   city: String,
   street: String,
   zip: Number,
+  purchases: [],
   cart: [],
   admin: { type: Boolean, default: false },
 });

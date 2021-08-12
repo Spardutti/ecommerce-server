@@ -122,6 +122,6 @@ router.put("/user/product/cart/:id", productController.updateUserCart);
 router.post("/checkout/:id", checkoutController.checkout);
 
 //TEST
-router.get("/feedback", checkoutController.feedback);
+router.get("/success", checkoutController.success);
 
 module.exports = router;
