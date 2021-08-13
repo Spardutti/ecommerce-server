@@ -17,7 +17,7 @@ exports.checkout = (req, res, next) => {
       let preference = {
         items: [],
         back_urls: {
-          success: "http://localhost:5000/success",
+          success: "http://localhost:3000/#/itempurchaseddetail",
           failure: "http://localhost:5000/failure",
           pending: "http://localhost:5000/feedback",
         },
@@ -56,9 +56,7 @@ exports.checkout = (req, res, next) => {
       mercadopago.preferences
         .create(preference)
         .then(function (response) {
-          // TODO SEND RESPONSE, AND THEN COMPARE IDS AND CHECK STATUS
-          console.log(response);
-          res.json(response.body.init_point);
+          res.json(response.body);
         })
         .catch(function (error) {
           return error;
@@ -67,11 +65,5 @@ exports.checkout = (req, res, next) => {
   });
 };
 exports.success = async (req, res, next) => {
-  console.log(req.query);
-  res.json({
-    Payment: req.query.payment_id,
-    Status: req.query.status,
-    MerchantOrder: req.query.merchant_order_id,
-    response: req.query,
-  });
+  res.redirect("http://localhost:3000/#/itempurchaseddetail");
 };

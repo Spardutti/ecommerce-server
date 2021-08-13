@@ -313,3 +313,18 @@ exports.updateUserCart = async (req, res, next) => {
     res.json(next(err));
   }
 };
+
+// UPDATE USER PURCHASES
+exports.updateUserPurchases = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    user.purchases.push(req.body.purchase);
+    user.markModified("purchases");
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    return res.status(500).json(next(err));
+  }
+};
+
+// TODO UPDATE THE PURCHASES[0] STATUS
