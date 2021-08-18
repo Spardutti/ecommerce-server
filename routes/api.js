@@ -119,6 +119,9 @@ router.put("/user/product/cart/:id", productController.updateUserCart);
 // UPDATE USER PRUCHASES
 router.put("/user/purchases/:id", productController.updateUserPurchases);
 
+// APPROVE PURCHASE
+router.put("/user/success/:id", productController.updateSuccessPurchase);
+
 /***************************************** CHECKOUT */
 
 // TEST

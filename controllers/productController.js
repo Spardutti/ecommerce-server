@@ -327,4 +327,17 @@ exports.updateUserPurchases = async (req, res, next) => {
   }
 };
 
-// TODO UPDATE THE PURCHASES[0] STATUS
+// TODO UPDATE THE PURCHASES STATUS TO APPROVED AND CLEAR CART
+exports.updateSuccessPurchase = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    user.purchases[req.body.index].status = "approved";
+    user.cart = [];
+    user.markModified("cart");
+    user.markModified("purchases");
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    res.json(next(err));
+  }
+};

@@ -17,7 +17,7 @@ exports.checkout = (req, res, next) => {
       let preference = {
         items: [],
         back_urls: {
-          success: "http://localhost:3000/#/itempurchaseddetail",
+          success: "http://localhost:3000/#/purchasesuccess",
           failure: "http://localhost:5000/failure",
           pending: "http://localhost:5000/feedback",
         },
