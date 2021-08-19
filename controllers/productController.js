@@ -327,7 +327,7 @@ exports.updateUserPurchases = async (req, res, next) => {
   }
 };
 
-// TODO UPDATE THE PURCHASES STATUS TO APPROVED AND CLEAR CART
+// UPDATE THE PURCHASES STATUS TO APPROVED AND CLEAR CART
 exports.updateSuccessPurchase = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -339,5 +339,16 @@ exports.updateSuccessPurchase = async (req, res, next) => {
     res.json(user);
   } catch (err) {
     res.json(next(err));
+  }
+};
+
+// GET PURCHASES DETAIL
+exports.purchaseDetail = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    const purchase = user.purchases[req.body.index];
+    res.json(purchase);
+  } catch (err) {
+    res.status(500).json(next(err));
   }
 };

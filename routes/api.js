@@ -122,12 +122,15 @@ router.put("/user/purchases/:id", productController.updateUserPurchases);
 // APPROVE PURCHASE
 router.put("/user/success/:id", productController.updateSuccessPurchase);
 
+// GET PURCHASE DETAIL
+router.post("/purchase/detail/:id", productController.purchaseDetail);
+
 /***************************************** CHECKOUT */
 
 // TEST
 router.post("/checkout/:id", checkoutController.checkout);
 
 //TEST
-router.get("/success", checkoutController.success);
+//router.get("/success", checkoutController.success);
 
 module.exports = router;

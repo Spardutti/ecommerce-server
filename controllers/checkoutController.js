@@ -37,6 +37,8 @@ exports.checkout = (req, res, next) => {
           unit_price: item.price,
           quantity: item.quantity,
           picture_url: item.image,
+          color: item.color,
+          size: item.size,
         });
       });
       // CHECK STOCK
@@ -64,6 +66,6 @@ exports.checkout = (req, res, next) => {
     }
   });
 };
-exports.success = async (req, res, next) => {
+/*exports.success = async (req, res, next) => {
   res.redirect("http://localhost:3000/#/itempurchaseddetail");
-};
+};*/
