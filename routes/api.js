@@ -4,6 +4,8 @@ const userController = require("../controllers/userController");
 const categoryController = require("../controllers/categoryControllers");
 const productController = require("../controllers/productController");
 const checkoutController = require("../controllers/checkoutController");
+7;
+const transactionController = require("../controllers/transactionsController");
 const passport = require("passport");
 const multer = require("multer");
 const uniqid = require("uniqid");
@@ -127,10 +129,21 @@ router.post("/purchase/detail/:id", productController.purchaseDetail);
 
 /***************************************** CHECKOUT */
 
-// TEST
+// CHECK STOCK AND CHECKOUT
 router.post("/checkout/:id", checkoutController.checkout);
 
-//TEST
-//router.get("/success", checkoutController.success);
+/******************************************** TRANSACTIONS */
+
+// NEW TRANSACTION
+router.post("/transaction/new", transactionController.newTransaction);
+
+// GET SPECIFIC TRANSACTION
+router.get("/transaction/:id", transactionController.getTransaction);
+
+// UPDATE TRANSACTION STATUS
+router.put(
+  "/transaction/update",
+  transactionController.updateTransactionStatus
+);
 
 module.exports = router;
