@@ -140,6 +140,9 @@ router.post("/transaction/new", transactionController.newTransaction);
 // GET SPECIFIC TRANSACTION
 router.get("/transaction/:id", transactionController.getTransaction);
 
+// GET USER TRANSACTIONS
+router.get("/transactions/user/:user", transactionController.userTransactions);
+
 // UPDATE TRANSACTION STATUS
 router.put(
   "/transaction/update",

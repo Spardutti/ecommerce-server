@@ -47,5 +47,14 @@ exports.updateTransactionStatus = async (req, res, next) => {
 };
 // TODO
 // GET ALL USER TRANSACTIONS
+exports.userTransactions = async (req, res, next) => {
+  try {
+    const transaction = await Transactions.find({ user: req.params.user });
+    // TODO SORT BY DATE
+    res.json(transaction);
+  } catch (err) {
+    return next(err);
+  }
+};
 
 // GET ALL TRANSACTIONS
