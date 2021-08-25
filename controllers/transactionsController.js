@@ -45,12 +45,13 @@ exports.updateTransactionStatus = async (req, res, next) => {
     return next(err);
   }
 };
-// TODO
+
 // GET ALL USER TRANSACTIONS
 exports.userTransactions = async (req, res, next) => {
   try {
-    const transaction = await Transactions.find({ user: req.params.user });
-    // TODO SORT BY DATE
+    const transaction = await Transactions.find({
+      user: req.params.user,
+    }).sort({ date: "desc" });
     res.json(transaction);
   } catch (err) {
     return next(err);
@@ -58,3 +59,16 @@ exports.userTransactions = async (req, res, next) => {
 };
 
 // GET ALL TRANSACTIONS
+exports.allTransactions = async (req, res, next) => {
+  console.log(req.user);
+  try {
+    const transactions = await Transactions.find()
+      .sort({ date: "desc" })
+      .populate("user");
+    console.log(transactions[0]);
+    res.json(transactions);
+    //res.json(transactions);
+  } catch (err) {
+    return next(err);
+  }
+};

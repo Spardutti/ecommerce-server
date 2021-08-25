@@ -4,7 +4,7 @@ const userController = require("../controllers/userController");
 const categoryController = require("../controllers/categoryControllers");
 const productController = require("../controllers/productController");
 const checkoutController = require("../controllers/checkoutController");
-7;
+
 const transactionController = require("../controllers/transactionsController");
 const passport = require("passport");
 const multer = require("multer");
@@ -148,5 +148,8 @@ router.put(
   "/transaction/update",
   transactionController.updateTransactionStatus
 );
+
+// GET ALL TRANSACTIONS
+router.get("/transactions/all", transactionController.allTransactions);
 
 module.exports = router;
