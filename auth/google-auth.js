@@ -8,7 +8,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_SECRET,
-      callbackURL: "http://localhost:5000/user/google/success",
+      //callbackURL: "http://localhost:5000/user/google/success", // DEV
+      callbackURL: "https://ecommercedemosite.herokuapp.com", // LIVE
     },
     (acessToken, refreshToken, profile, done) => {
       User.findOne({ email: profile.email }, (err, user) => {
