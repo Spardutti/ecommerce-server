@@ -4,8 +4,7 @@ const mercadopago = require("mercadopago");
 require("dotenv").config();
 
 mercadopago.configure({
-  access_token:
-    "APP_USR-5713106896067816-062820-4039e5c8877d6946b5645719d0f423ae-782636851",
+  access_token: process.env.MERCADOPAGO_ACCESS_TOKEN,
 });
 
 // MERCADO TEST
