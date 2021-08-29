@@ -2,6 +2,7 @@
   "name": "server",
   "version": "0.0.0",
   "private": true,
+  "engines": {"nove": "12.21.0"},
   "scripts": {
     "start": "nodemon ./bin/www"
   },
