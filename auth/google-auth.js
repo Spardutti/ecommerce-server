@@ -2,6 +2,7 @@ const GoogleStrategy = require("passport-google-oauth2").Strategy;
 const passport = require("passport");
 const User = require("../models/User");
 require("dotenv").config();
+// TODO SET UP GOOGLE
 
 passport.use(
   new GoogleStrategy(
@@ -9,7 +10,8 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_SECRET,
       //callbackURL: "http://localhost:5000/user/google/success", // DEV
-      callbackURL: "https://ecommercedemosite.herokuapp.com", // LIVE
+      callbackURL:
+        "https://ecommercedemosite.herokuapp.com/user/google/success", // LIVE
     },
     (acessToken, refreshToken, profile, done) => {
       User.findOne({ email: profile.email }, (err, user) => {
