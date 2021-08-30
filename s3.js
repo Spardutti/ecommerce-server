@@ -36,15 +36,13 @@ const deleteFileFromS3 = async (Key) => {
   };
   try {
     await s3.headObject(params).promise();
-    console.log("File Found in S3");
     try {
       await s3.deleteObject(params).promise();
-      console.log("file deleted Successfully");
     } catch (err) {
-      console.log("ERROR in file Deleting : " + JSON.stringify(err));
+      return "ERROR in file Deleting : " + JSON.stringify(err);
     }
   } catch (err) {
-    console.log("File not Found ERROR : " + err.code);
+    return "File not Found ERROR : " + err.code;
   }
 };
 
