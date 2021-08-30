@@ -37,7 +37,10 @@ exports.jwtoken = (req, res, next) => {
     const token = jwt.sign(req.user.toJSON(), process.env.JWT_SECRET, {
       expiresIn: "60m",
     });
-    res.redirect("http://localhost:3000/#/logged?token=" + token);
+    // res.redirect("http://localhost:3000/#/logged?token=" + token); // DEV
+    res.redirect(
+      "https://spardutti.github.io/ecommerce-client/#/logged?token=" + token
+    ); // LIVE
   } else res.redirect("http://localhost:5000/");
 };
 
