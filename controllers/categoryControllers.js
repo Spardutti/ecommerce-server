@@ -1,29 +1,30 @@
 const Category = require("../models/Category");
 const Product = require("../models/Product");
 const { body, validationResult } = require("express-validator");
+const { uploadFile, deleteFileFromS3 } = require("../s3");
 
 // CREATE NEW CATEGORY
 exports.newCategory = [
   body("name").notEmpty().withMessage("Please enter a category name"),
 
-  (req, res, next) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
+    if (!req.file) errors.errors.push({ msg: "Please add an image" });
     if (!errors.isEmpty()) res.status(500).json(errors.array());
     else {
       const { name } = req.body;
-      Category.findOne({ name }, (err, category) => {
-        if (err) return next(err);
-        if (category) {
-          res.status(400).json("Category already exist");
-        } else {
-          new Category({
-            name,
-          }).save((err, newCategory) => {
-            if (err) return next(err);
-            res.json(newCategory);
-          });
-        }
-      });
+      const category = await Category.findOne({ name });
+      if (category) {
+        res.status(400).json("Category already exist");
+      } else {
+        const image = await uploadFile(req.file);
+        const newCategory = new Category({
+          name,
+          image: { url: image.Location, key: image.key },
+        });
+        await newCategory.save();
+        res.json(newCategory);
+      }
     }
   },
 ];
