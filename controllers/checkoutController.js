@@ -15,12 +15,20 @@ exports.checkout = (req, res, next) => {
     else {
       let preference = {
         items: [],
-        // TODO UPDATE URL
+        // LIVE
+        back_urls: {
+          success: "https://spardutti.github.io/ecommerce-client/",
+          failure: "https://spardutti.github.io/ecommerce-client/",
+          pending: "https://spardutti.github.io/ecommerce-client/",
+        },
+
+        /*  // DEV
         back_urls: {
           success: "http://localhost:3000/#/purchasesuccess",
           failure: "http://localhost:3000/#/purchasefailure",
           pending: "http://localhost:5000/feedback",
-        },
+        }, */
+
         auto_return: "approved",
         payer: {
           name: user.username,
