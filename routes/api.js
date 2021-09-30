@@ -61,7 +61,11 @@ router.post("/user/login", userController.localLogin);
 /****************************************** CATEGORY */
 
 // NEW CATEGORY
-router.post("/category/new", categoryController.newCategory);
+router.post(
+  "/category/new",
+  upload.single("image"),
+  categoryController.newCategory
+);
 
 // GET ALL CATEGORIES
 router.get("/categories", categoryController.getAllCategories);

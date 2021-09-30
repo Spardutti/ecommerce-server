@@ -65,7 +65,6 @@ exports.allTransactions = async (req, res, next) => {
       .sort({ date: "desc" })
       .populate("user");
     res.json(transactions);
-    //res.json(transactions);
   } catch (err) {
     return next(err);
   }

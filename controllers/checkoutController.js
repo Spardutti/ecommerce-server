@@ -15,6 +15,7 @@ exports.checkout = (req, res, next) => {
     else {
       let preference = {
         items: [],
+        // TODO UPDATE URL
         back_urls: {
           success: "http://localhost:3000/#/purchasesuccess",
           failure: "http://localhost:3000/#/purchasefailure",
